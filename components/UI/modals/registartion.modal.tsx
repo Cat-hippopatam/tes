@@ -1,0 +1,17 @@
+"use client";
+import CustomModal from "@/components/common/modal";
+import RegistrationForm from "@/forms/auth/registartion.form";
+interface IProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+const RegistrationModal = ({ isOpen, onClose }: IProps) => {
+    return (
+
+        <CustomModal isOpen={isOpen} onClose={onClose} title="Cоздать аккаунт"> 
+            <RegistrationForm onClose={onClose} />
+        </CustomModal>
+
+    );
+};
+export default RegistrationModal;
