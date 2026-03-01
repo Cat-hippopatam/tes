@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
+  // output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -63,11 +63,11 @@ enum ReactionType {
   DISLIKE
 }
 
-// Тип объекта для реакции
-enum ReactionTargetType {
-  CONTENT
-  COMMENT
-}
+// // Тип объекта для реакции
+// enum ReactionTargetType {
+//   CONTENT
+//   COMMENT
+// }
 
 // Статусы подписки
 enum SubscriptionStatus {
@@ -126,7 +126,7 @@ enum StorageProvider {
 // ___________________________________________________________________________
 
 model User {
-  id             String    @id @default(cuid()) @map("user_id") @db.Uuid
+  id             String    @id @default(uuid()) @map("user_id") @db.Uuid
   email          String    @unique @db.VarChar(255)
   firstName      String    @map("first_name") @db.VarChar(100)
   lastName       String    @map("last_name") @db.VarChar(100)
@@ -144,9 +144,7 @@ model User {
   profile        Profile?
   sessions       Session[]
   accounts       Account[]
-  moderationItems ModerationItem[] @relation("SubmittedBy")
-  moderatedItems ModerationItem[] @relation("ModeratedBy")
-  businessEvents BusinessEvent[]
+  
 
   @@map("users")
   @@index([email])
@@ -156,9 +154,9 @@ model User {
 }
 
 model Profile {
-  id             String    @id @default(cuid()) @map("profile_id") @db.Uuid
+  id             String    @id @default(uuid()) @map("profile_id") @db.Uuid
   userId         String    @unique @map("user_id") @db.Uuid
-  user           User      @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // Публичные данные
   nickname       String    @unique @map("nickname") @db.VarChar(50)
@@ -182,13 +180,19 @@ model Profile {
   // Связи
   content        Content[]
   comments       Comment[]
-  reactions      Reaction[]
+  contentReactions   ContentReaction[]
+  commentReactions   CommentReaction[]
   favorites      Favorite[]
   history        History[]
   progress       Progress[]
   subscriptions  Subscription[]  // Подписки (на курсы)
   paymentMethods PaymentMethod[]
   notifications  Notification[]
+
+  transactions        Transaction[]      // для связи с Transaction.profile
+  businessEvents      BusinessEvent[]    // для связи с BusinessEvent.profile
+  submittedModeration ModerationItem[]   @relation("SubmittedBy")   // для moderation
+  moderatedModeration ModerationItem[]   @relation("ModeratedBy")   // для moderation
 
   @@map("profiles")
   @@index([userId])
@@ -197,9 +201,9 @@ model Profile {
 }
 
 model Account {
-  id                String  @id @default(cuid()) @map("account_id") @db.Uuid
+  id                String  @id @default(uuid()) @map("account_id") @db.Uuid
   userId            String  @map("user_id") @db.Uuid
-  user              User    @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   type              String  @db.VarChar(50)
   provider          String  @db.VarChar(50)
@@ -219,10 +223,10 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid()) @map("session_id") @db.Uuid
+  id           String   @id @default(uuid()) @map("session_id") @db.Uuid
   sessionToken String   @unique @map("session_token") @db.VarChar(255)
   userId       String   @map("user_id") @db.Uuid
-  user         User     @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expires      DateTime @db.Timestamptz(6)
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -233,7 +237,7 @@ model Session {
 }
 
 model Content {
-  id               String        @id @default(cuid()) @map("content_id") @db.Uuid
+  id               String        @id @default(uuid()) @map("content_id") @db.Uuid
   type             ContentType   @map("type")
   title            String        @db.VarChar(255)
   slug             String        @unique @db.VarChar(255)
@@ -248,7 +252,7 @@ model Content {
   
   // Связь с модулем (НОВОЕ)
   moduleId         String?       @map("module_id") @db.Uuid
-  module           Module?       @relation(fields: [moduleId], references: [id], onDelete: SET NULL)
+  module           Module?       @relation("ModuleLessons", fields: [moduleId], references: [id], onDelete: SetNull)
   
   // Уровень сложности
   // difficultyLevel  String?       @map("difficulty_level") @db.VarChar(20)
@@ -284,11 +288,14 @@ model Content {
   // Связи
   attachments      Attachment[]
   comments         Comment[]
-  reactions        Reaction[]
+  contentReactions ContentReaction[]
   favorites        Favorite[]
   history          History[]
   progress         Progress[]
   tags             TagContent[]
+  // Это поле ОБЯЗАТЕЛЬНО добавить для работы связи "курс -> модули"
+  courseModules    Module[]      @relation("CourseModules")  
+  purchases        Transaction[]  // обратная связь для купленного контента
 
   @@map("content")
   @@index([slug])
@@ -302,9 +309,9 @@ model Content {
 }
 
 model Attachment {
-  id             String   @id @default(cuid()) @map("attachment_id") @db.Uuid
+  id             String   @id @default(uuid()) @map("attachment_id") @db.Uuid
   contentId      String   @map("content_id") @db.Uuid
-  content        Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content        Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   // Основные поля
   name           String   @db.VarChar(255)           // Отображаемое имя файла
@@ -335,9 +342,9 @@ model Attachment {
 }
 
 model Module {
-  id             String    @id @default(cuid()) @map("module_id") @db.Uuid
+  id             String    @id @default(uuid()) @map("module_id") @db.Uuid
   courseId       String    @map("course_id") @db.Uuid
-  course         Content   @relation(fields: [courseId], references: [id], onDelete: CASCADE)
+  course         Content   @relation("CourseModules", fields: [courseId], references: [id], onDelete: Cascade)
   
   // Основные поля
   title          String    @db.VarChar(255)
@@ -364,7 +371,7 @@ model Module {
   deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6) // Soft delete
   
   // Связи
-  lessons        Content[] // Уроки в этом модуле
+  lessons        Content[] @relation("ModuleLessons")  // Уроки в этом модуле
   
   @@map("modules")
   @@index([courseId])
@@ -374,7 +381,7 @@ model Module {
 }
 
 model Tag {
-  id             String        @id @default(cuid()) @map("tag_id") @db.Uuid
+  id             String        @id @default(uuid()) @map("tag_id") @db.Uuid
   name           String        @unique @db.VarChar(50)  // Название тега, например "инвестиции"
   slug           String        @unique @db.VarChar(50)  // Для URL: "investitsii"
   
@@ -400,12 +407,12 @@ model Tag {
 }
 
 model TagContent {
-  id             String        @id @default(cuid()) @map("tag_content_id") @db.Uuid
+  id             String        @id @default(uuid()) @map("tag_content_id") @db.Uuid
   tagId          String        @map("tag_id") @db.Uuid
-  tag            Tag           @relation(fields: [tagId], references: [id], onDelete: CASCADE)
+  tag            Tag           @relation(fields: [tagId], references: [id], onDelete: Cascade)
   
   contentId      String        @map("content_id") @db.Uuid
-  content        Content       @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content        Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -416,9 +423,9 @@ model TagContent {
 }
 
 model Comment {
-  id               String           @id @default(cuid()) @map("comment_id") @db.Uuid
+  id               String           @id @default(uuid()) @map("comment_id") @db.Uuid
   contentId        String           @map("content_id") @db.Uuid
-  content          Content          @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content          Content          @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   authorProfileId  String           @map("author_profile_id") @db.Uuid
   author           Profile          @relation(fields: [authorProfileId], references: [id])
@@ -446,7 +453,7 @@ model Comment {
   deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)  // Soft delete
 
   // Связи
-  reactions        Reaction[]       // Лайки/дизлайки комментария
+  commentReactions CommentReaction[] // Лайки/дизлайки комментария
 
   @@map("comments")
   @@index([contentId])
@@ -457,32 +464,34 @@ model Comment {
   @@index([deletedAt])
 }
 
-model Reaction {
-  id               String              @id @default(cuid()) @map("reaction_id") @db.Uuid
-  type             ReactionType        @map("type")
+// model Reaction {
+//   id               String              @id @default(uuid()) @map("reaction_id") @db.Uuid
+//   type             ReactionType        @map("type")
   
-  profileId        String              @map("profile_id") @db.Uuid
-  profile          Profile             @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+//   profileId        String              @map("profile_id") @db.Uuid
+//   profile          Profile             @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
-  // Полиморфная связь с использованием enum
-  targetType       ReactionTargetType  @map("target_type")
-  targetId         String              @map("target_id") @db.Uuid  // ID контента или комментария
+//   // Полиморфная связь с использованием enum
+//   targetType       ReactionTargetType  @map("target_type")
+//   targetId         String              @map("target_id") @db.Uuid  // ID контента или комментария
   
-  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+//   createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  @@unique([profileId, targetType, targetId])  // Одна реакция от пользователя на один объект
-  @@map("reactions")
-  @@index([profileId])
-  @@index([targetType, targetId])
-}
+//   @@unique([profileId, targetType, targetId])  // Одна реакция от пользователя на один объект
+//   @@map("reactions")
+//   @@index([profileId])
+//   @@index([targetType, targetId])
+// }
+
+
 
 model Favorite {
-  id               String   @id @default(cuid()) @map("favorite_id") @db.Uuid
+  id               String   @id @default(uuid()) @map("favorite_id") @db.Uuid
   profileId        String   @map("profile_id") @db.Uuid
-  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   contentId        String   @map("content_id") @db.Uuid
-  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   // Можно добавить заметку пользователя к сохраненному материалу
   note             String?  @db.Text
@@ -499,13 +508,51 @@ model Favorite {
   @@index([collection])
 }
 
+// РЕАКЦИИ ДЛЯ КОНТЕНТА
+model ContentReaction {
+  id               String        @id @default(uuid()) @map("content_reaction_id") @db.Uuid
+  type             ReactionType  @map("type")
+  
+  profileId        String        @map("profile_id") @db.Uuid
+  profile          Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  contentId        String        @map("content_id") @db.Uuid
+  content          Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([profileId, contentId])  // Одна реакция от пользователя на один контент
+  @@map("content_reactions")
+  @@index([contentId])
+  @@index([profileId])
+}
+
+// РЕАКЦИИ ДЛЯ КОММЕНТАРИЕВ
+model CommentReaction {
+  id               String        @id @default(uuid()) @map("comment_reaction_id") @db.Uuid
+  type             ReactionType  @map("type")
+  
+  profileId        String        @map("profile_id") @db.Uuid
+  profile          Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  commentId        String        @map("comment_id") @db.Uuid
+  comment          Comment       @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([profileId, commentId])  // Одна реакция от пользователя на один комментарий
+  @@map("comment_reactions")
+  @@index([commentId])
+  @@index([profileId])
+}
+
 model History {
-  id               String   @id @default(cuid()) @map("history_id") @db.Uuid
+  id               String   @id @default(uuid()) @map("history_id") @db.Uuid
   profileId        String   @map("profile_id") @db.Uuid
-  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   contentId        String   @map("content_id") @db.Uuid
-  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   // Детали просмотра
   watchedSeconds   Int?     @map("watched_seconds")  // Сколько секунд просмотрено (для видео)
@@ -524,12 +571,12 @@ model History {
 }
 
 model Progress {
-  id               String   @id @default(cuid()) @map("progress_id") @db.Uuid
+  id               String   @id @default(uuid()) @map("progress_id") @db.Uuid
   profileId        String   @map("profile_id") @db.Uuid
-  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   contentId        String   @map("content_id") @db.Uuid  // Может быть курс, модуль или урок
-  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   
   // Прогресс
   status           String   @default("not_started") @map("status")  // 'not_started', 'in_progress', 'completed'
@@ -557,9 +604,9 @@ model Progress {
 }
 
 model Subscription {
-  id               String             @id @default(cuid()) @map("subscription_id") @db.Uuid
+  id               String             @id @default(uuid()) @map("subscription_id") @db.Uuid
   profileId        String             @map("profile_id") @db.Uuid
-  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   // Тип и статус
   planType         String             @map("plan_type") @db.VarChar(50)  // 'monthly', 'yearly', 'lifetime'
@@ -603,9 +650,9 @@ model Subscription {
 }
 
 model Transaction {
-  id               String             @id @default(cuid()) @map("transaction_id") @db.Uuid
+  id               String             @id @default(uuid()) @map("transaction_id") @db.Uuid
   profileId        String             @map("profile_id") @db.Uuid
-  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   // Связь с подпиской (если это платеж по подписке)
   subscriptionId   String?            @map("subscription_id") @db.Uuid
@@ -652,9 +699,9 @@ model Transaction {
 }
 
 model PaymentMethod {
-  id               String   @id @default(cuid()) @map("payment_method_id") @db.Uuid
+  id               String   @id @default(uuid()) @map("payment_method_id") @db.Uuid
   profileId        String   @map("profile_id") @db.Uuid
-  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   // Тип метода
   type             String   @map("type") @db.VarChar(50)  // 'card', 'yoomoney', 'sbp'
@@ -696,9 +743,9 @@ model PaymentMethod {
 }
 
 model BusinessEvent {
-  id               String   @id @default(cuid()) @map("event_id") @db.Uuid
+  id               String   @id @default(uuid()) @map("event_id") @db.Uuid
   profileId        String?  @map("profile_id") @db.Uuid  // Может быть null для неавторизованных
-  profile          Profile? @relation(fields: [profileId], references: [id], onDelete: SET NULL)
+  profile          Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
   
   // Тип события
   eventType        String   @map("event_type") @db.VarChar(100)  // Например: 'page_view', 'course_start', 'purchase'
@@ -728,7 +775,7 @@ model BusinessEvent {
 }
 
 model ModerationItem {
-  id               String             @id @default(cuid()) @map("moderation_item_id") @db.Uuid
+  id               String             @id @default(uuid()) @map("moderation_item_id") @db.Uuid
   itemType         ModerationItemType @map("item_type")
   itemId           String             @map("item_id") @db.Uuid  // ID контента или комментария
   
@@ -766,9 +813,9 @@ model ModerationItem {
 }
 
 model Notification {
-  id               String           @id @default(cuid()) @map("notification_id") @db.Uuid
+  id               String           @id @default(uuid()) @map("notification_id") @db.Uuid
   profileId        String           @map("profile_id") @db.Uuid
-  profile          Profile          @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  profile          Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
   // Тип и канал
   type             NotificationType @map("type")  // 'email', 'in_app', 'telegram'
