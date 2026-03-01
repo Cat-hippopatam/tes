@@ -12,3 +12,796 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+
+// Роли пользователей
+enum Role {
+  USER
+  AUTHOR
+  MODERATOR
+  ADMIN
+}
+
+// Типы контента
+enum ContentType {
+  COURSE
+  MODULE
+  ARTICLE
+  VIDEO
+  PODCAST
+  QUIZ
+  TASK
+}
+
+// Статусы контента
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+  DELETED
+}
+
+// Уровень сложности
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// Провайдеры видео
+enum VideoProvider {
+  YOUTUBE
+  RUTUBE
+  VIMEO
+  LOCAL
+}
+
+// Типы реакций
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
+// Тип объекта для реакции
+enum ReactionTargetType {
+  CONTENT
+  COMMENT
+}
+
+// Статусы подписки
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+// Статусы транзакций
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// Типы элементов для модерации
+enum ModerationItemType {
+  CONTENT
+  COMMENT
+  PROFILE
+}
+
+// Статусы модерации
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Типы уведомлений
+enum NotificationType {
+  EMAIL
+  IN_APP
+  TELEGRAM
+}
+
+// Провайдеры аутентификации
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  VK
+  YANDEX
+  GITHUB
+}
+
+// Провайдеры хранения файлов
+enum StorageProvider {
+  VERCEL_BLOB
+  AWS_S3
+  CLOUDINARY
+  LOCAL
+}
+
+// ___________________________________________________________________________
+
+model User {
+  id             String    @id @default(cuid()) @map("user_id") @db.Uuid
+  email          String    @unique @db.VarChar(255)
+  firstName      String    @map("first_name") @db.VarChar(100)
+  lastName       String    @map("last_name") @db.VarChar(100)
+  passwordHash   String?   @map("password_hash") @db.VarChar(255)
+  role           Role      @default(USER)
+  emailVerified  DateTime? @map("email_verified") @db.Timestamptz(6)
+  isBlocked      Boolean   @default(false) @map("is_blocked")
+  blockedReason  String?   @map("blocked_reason") @db.Text
+  lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)  // SOFT DELETE ОСТАВЛЯЕМ
+
+  // Связи
+  profile        Profile?
+  sessions       Session[]
+  accounts       Account[]
+  moderationItems ModerationItem[] @relation("SubmittedBy")
+  moderatedItems ModerationItem[] @relation("ModeratedBy")
+  businessEvents BusinessEvent[]
+
+  @@map("users")
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model Profile {
+  id             String    @id @default(cuid()) @map("profile_id") @db.Uuid
+  userId         String    @unique @map("user_id") @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  
+  // Публичные данные
+  nickname       String    @unique @map("nickname") @db.VarChar(50)
+  displayName    String    @map("display_name") @db.VarChar(255)
+  avatarUrl      String?   @map("avatar_url") @db.Text
+  coverImage     String?   @map("cover_image") @db.Text  // ДОБАВЛЕНО: обложка профиля
+  bio            String?   @db.Text
+  
+  // Социальные ссылки (опционально)
+  website        String?   @db.VarChar(255)
+  telegram       String?   @db.VarChar(100)
+  youtube        String?   @db.VarChar(100)
+  
+  // Статистика профиля
+  totalViews     Int       @default(0) @map("total_views")
+  subscribers    Int       @default(0)
+  
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Связи
+  content        Content[]
+  comments       Comment[]
+  reactions      Reaction[]
+  favorites      Favorite[]
+  history        History[]
+  progress       Progress[]
+  subscriptions  Subscription[]  // Подписки (на курсы)
+  paymentMethods PaymentMethod[]
+  notifications  Notification[]
+
+  @@map("profiles")
+  @@index([userId])
+  @@index([nickname])
+  @@index([displayName])
+}
+
+model Account {
+  id                String  @id @default(cuid()) @map("account_id") @db.Uuid
+  userId            String  @map("user_id") @db.Uuid
+  user              User    @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(255)
+  
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.VarChar(255)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(255)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid()) @map("session_id") @db.Uuid
+  sessionToken String   @unique @map("session_token") @db.VarChar(255)
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: CASCADE)
+  expires      DateTime @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("sessions")
+  @@index([sessionToken])
+  @@index([userId])
+}
+
+model Content {
+  id               String        @id @default(cuid()) @map("content_id") @db.Uuid
+  type             ContentType   @map("type")
+  title            String        @db.VarChar(255)
+  slug             String        @unique @db.VarChar(255)
+  description      String?       @db.Text
+  body             String?       @db.Text  // HTML или JSON контент
+  coverImage       String?       @map("cover_image") @db.Text
+  
+  // Видео-специфичные поля
+  videoUrl         String?       @map("video_url") @db.Text
+  videoProvider    VideoProvider? @map("video_provider")
+  videoDuration    Int?          @map("video_duration")  // в секундах
+  
+  // Связь с модулем (НОВОЕ)
+  moduleId         String?       @map("module_id") @db.Uuid
+  module           Module?       @relation(fields: [moduleId], references: [id], onDelete: SET NULL)
+  
+  // Уровень сложности
+  // difficultyLevel  String?       @map("difficulty_level") @db.VarChar(20)
+  difficultyLevel  DifficultyLevel? @map("difficulty_level")
+  
+  // SEO
+  metaTitle        String?       @map("meta_title") @db.VarChar(255)
+  metaDescription  String?       @map("meta_description") @db.Text
+  
+  // Статус и видимость
+  status           ContentStatus @default(DRAFT) @map("status")
+  isPremium        Boolean       @default(false) @map("is_premium")
+  publishedAt      DateTime?     @map("published_at") @db.Timestamptz(6)
+  
+  // Связи
+  authorProfileId  String        @map("author_profile_id") @db.Uuid
+  author           Profile       @relation(fields: [authorProfileId], references: [id])
+  
+  // Порядок сортировки внутри модуля
+  sortOrder        Int           @default(0) @map("sort_order")
+  
+  // Статистика (кешированная)
+  viewsCount       Int           @default(0) @map("views_count")
+  likesCount       Int           @default(0) @map("likes_count")
+  commentsCount    Int           @default(0) @map("comments_count")
+  favoritesCount   Int           @default(0) @map("favorites_count")
+  
+  // Время
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  // Связи
+  attachments      Attachment[]
+  comments         Comment[]
+  reactions        Reaction[]
+  favorites        Favorite[]
+  history          History[]
+  progress         Progress[]
+  tags             TagContent[]
+
+  @@map("content")
+  @@index([slug])
+  @@index([authorProfileId])
+  @@index([type])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([moduleId])        // НОВЫЙ ИНДЕКС
+  @@index([difficultyLevel])
+  @@index([deletedAt])
+}
+
+model Attachment {
+  id             String   @id @default(cuid()) @map("attachment_id") @db.Uuid
+  contentId      String   @map("content_id") @db.Uuid
+  content        Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  // Основные поля
+  name           String   @db.VarChar(255)           // Отображаемое имя файла
+  fileName       String   @map("file_name") @db.VarChar(255)  // Оригинальное имя файла
+  fileSize       Int      @map("file_size")          // Размер в байтах
+  mimeType       String   @map("mime_type") @db.VarChar(100)  // 'application/pdf', 'image/png'
+  
+  // Хранение
+  url            String   @db.Text                   // URL для доступа к файлу
+  storageProvider String  @map("storage_provider") @db.VarChar(50)  // 'vercel-blob', 's3', 'local'
+  storagePath    String   @map("storage_path") @db.Text  // Путь в хранилище
+  
+  // Для файлов внутри уроков (например, дополнительные материалы)
+  description    String?  @db.Text                   // Описание файла
+  sortOrder      Int      @default(0) @map("sort_order")  // Порядок отображения
+  
+  // Скачивания (для статистики)
+  downloadCount  Int      @default(0) @map("download_count")
+  
+  // Время
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("attachments")
+  @@index([contentId])
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+model Module {
+  id             String    @id @default(cuid()) @map("module_id") @db.Uuid
+  courseId       String    @map("course_id") @db.Uuid
+  course         Content   @relation(fields: [courseId], references: [id], onDelete: CASCADE)
+  
+  // Основные поля
+  title          String    @db.VarChar(255)
+  description    String?   @db.Text
+  sortOrder      Int       @default(0) @map("sort_order")
+  
+  // Визуальные элементы
+  coverImage     String?   @map("cover_image") @db.Text  // Обложка модуля
+  
+  // Статистика и длительность
+  duration       Int?      // Общая длительность модуля в секундах (кешированная сумма уроков)
+  lessonsCount   Int       @default(0) @map("lessons_count") // Количество уроков (кешированное)
+  
+  // Статус
+  isPublished    Boolean   @default(false) @map("is_published")
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz(6)
+  
+  // Метаданные для авторов
+  metadata       Json?     @db.JsonB // Дополнительные поля: цели модуля, материалы и т.д.
+  
+  // Время
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6) // Soft delete
+  
+  // Связи
+  lessons        Content[] // Уроки в этом модуле
+  
+  @@map("modules")
+  @@index([courseId])
+  @@index([sortOrder])
+  @@index([isPublished])
+  @@index([deletedAt])
+}
+
+model Tag {
+  id             String        @id @default(cuid()) @map("tag_id") @db.Uuid
+  name           String        @unique @db.VarChar(50)  // Название тега, например "инвестиции"
+  slug           String        @unique @db.VarChar(50)  // Для URL: "investitsii"
+  
+  // Опционально: описание тега (для страницы тега)
+  description    String?       @db.Text
+  
+  // Цвет для отображения (если нужны цветные теги)
+  color          String?       @db.VarChar(7)  // HEX-код, например "#457B9D"
+  
+  // Статистика
+  contentCount   Int           @default(0) @map("content_count")  // Кешированное количество материалов с этим тегом
+  
+  // Время
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Связи
+  content        TagContent[]
+
+  @@map("tags")
+  @@index([slug])
+  @@index([name])
+}
+
+model TagContent {
+  id             String        @id @default(cuid()) @map("tag_content_id") @db.Uuid
+  tagId          String        @map("tag_id") @db.Uuid
+  tag            Tag           @relation(fields: [tagId], references: [id], onDelete: CASCADE)
+  
+  contentId      String        @map("content_id") @db.Uuid
+  content        Content       @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([tagId, contentId])  // Гарантируем уникальность пары
+  @@map("tag_content")
+  @@index([tagId])
+  @@index([contentId])
+}
+
+model Comment {
+  id               String           @id @default(cuid()) @map("comment_id") @db.Uuid
+  contentId        String           @map("content_id") @db.Uuid
+  content          Content          @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  authorProfileId  String           @map("author_profile_id") @db.Uuid
+  author           Profile          @relation(fields: [authorProfileId], references: [id])
+  
+  // Текст комментария
+  text             String           @db.Text
+  
+  // Для древовидной структуры (ответы на комментарии)
+  parentId         String?          @map("parent_id") @db.Uuid
+  parent           Comment?         @relation("CommentReplies", fields: [parentId], references: [id])
+  replies          Comment[]        @relation("CommentReplies")
+  
+  // Модерация
+  status           ModerationStatus @default(PENDING) @map("status")
+  moderatedBy      String?          @map("moderated_by") @db.Uuid  // Profile ID модератора
+  moderatedAt      DateTime?        @map("moderated_at") @db.Timestamptz(6)
+  moderationReason String?          @map("moderation_reason") @db.Text  // Причина отклонения
+  
+  // Статистика
+  likesCount       Int              @default(0) @map("likes_count")  // Кешированное количество лайков
+  
+  // Время
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)  // Soft delete
+
+  // Связи
+  reactions        Reaction[]       // Лайки/дизлайки комментария
+
+  @@map("comments")
+  @@index([contentId])
+  @@index([authorProfileId])
+  @@index([parentId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model Reaction {
+  id               String              @id @default(cuid()) @map("reaction_id") @db.Uuid
+  type             ReactionType        @map("type")
+  
+  profileId        String              @map("profile_id") @db.Uuid
+  profile          Profile             @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  // Полиморфная связь с использованием enum
+  targetType       ReactionTargetType  @map("target_type")
+  targetId         String              @map("target_id") @db.Uuid  // ID контента или комментария
+  
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([profileId, targetType, targetId])  // Одна реакция от пользователя на один объект
+  @@map("reactions")
+  @@index([profileId])
+  @@index([targetType, targetId])
+}
+
+model Favorite {
+  id               String   @id @default(cuid()) @map("favorite_id") @db.Uuid
+  profileId        String   @map("profile_id") @db.Uuid
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  contentId        String   @map("content_id") @db.Uuid
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  // Можно добавить заметку пользователя к сохраненному материалу
+  note             String?  @db.Text
+  
+  // Для группировки избранного (например, "Инвестиции", "Пенсия")
+  collection       String?  @db.VarChar(100)  // Название папки/коллекции
+  
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([profileId, contentId])  // Одно избранное на пару пользователь-контент
+  @@map("favorites")
+  @@index([profileId])
+  @@index([contentId])
+  @@index([collection])
+}
+
+model History {
+  id               String   @id @default(cuid()) @map("history_id") @db.Uuid
+  profileId        String   @map("profile_id") @db.Uuid
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  contentId        String   @map("content_id") @db.Uuid
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  // Детали просмотра
+  watchedSeconds   Int?     @map("watched_seconds")  // Сколько секунд просмотрено (для видео)
+  completed        Boolean  @default(false)          // Просмотрено до конца
+  
+  // Время
+  viewedAt         DateTime @default(now()) @map("viewed_at") @db.Timestamptz(6)  // Последний просмотр
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([profileId, contentId])  // Одна запись истории на пару (можно обновлять viewedAt)
+  @@map("history")
+  @@index([profileId])
+  @@index([contentId])
+  @@index([viewedAt])
+}
+
+model Progress {
+  id               String   @id @default(cuid()) @map("progress_id") @db.Uuid
+  profileId        String   @map("profile_id") @db.Uuid
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  contentId        String   @map("content_id") @db.Uuid  // Может быть курс, модуль или урок
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: CASCADE)
+  
+  // Прогресс
+  status           String   @default("not_started") @map("status")  // 'not_started', 'in_progress', 'completed'
+  progressPercent  Int      @default(0) @map("progress_percent")    // 0-100
+  
+  // Для видео/уроков
+  lastPosition     Int?     @map("last_position")  // Последняя позиция в секундах (для видео)
+  
+  // Для курсов/модулей (кешированные данные)
+  completedLessons Int      @default(0) @map("completed_lessons")
+  totalLessons     Int      @default(0) @map("total_lessons")
+  
+  // Время
+  startedAt        DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt      DateTime? @map("completed_at") @db.Timestamptz(6)
+  lastViewedAt     DateTime  @default(now()) @map("last_viewed_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([profileId, contentId])  // Один прогресс на пару пользователь-контент
+  @@map("progress")
+  @@index([profileId])
+  @@index([contentId])
+  @@index([status])
+}
+
+model Subscription {
+  id               String             @id @default(cuid()) @map("subscription_id") @db.Uuid
+  profileId        String             @map("profile_id") @db.Uuid
+  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  // Тип и статус
+  planType         String             @map("plan_type") @db.VarChar(50)  // 'monthly', 'yearly', 'lifetime'
+  status           SubscriptionStatus @default(ACTIVE) @map("status")
+  
+  // Период действия
+  startDate        DateTime           @default(now()) @map("start_date") @db.Timestamptz(6)
+  endDate          DateTime?          @map("end_date") @db.Timestamptz(6)  // Для срочных подписок
+  trialEndsAt      DateTime?          @map("trial_ends_at") @db.Timestamptz(6)  // Окончание trial-периода
+  
+  // Продление
+  autoRenew        Boolean            @default(true) @map("auto_renew")
+  cancelAtPeriodEnd Boolean           @default(false) @map("cancel_at_period_end")  // Отмена в конце периода
+  
+  // Цена на момент покупки (для истории)
+  price            Float              @map("price")
+  currency         String             @default("RUB") @db.VarChar(3)
+  
+  // Связь с методом оплаты
+  paymentMethodId  String?            @map("payment_method_id") @db.Uuid
+  paymentMethod    PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
+  
+  // Метаданные от платежной системы
+  providerSubscriptionId String?       @map("provider_subscription_id") @db.VarChar(255)  // ID в системе провайдера
+  provider          String?            @db.VarChar(50)  // 'yookassa', 'tbank', etc.
+  
+  // Время
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  canceledAt       DateTime?          @map("canceled_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)  // Soft delete
+
+  // Связи
+  transactions     Transaction[]
+
+  @@map("subscriptions")
+  @@index([profileId])
+  @@index([status])
+  @@index([endDate])
+  @@index([providerSubscriptionId])
+}
+
+model Transaction {
+  id               String             @id @default(cuid()) @map("transaction_id") @db.Uuid
+  profileId        String             @map("profile_id") @db.Uuid
+  profile          Profile            @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  // Связь с подпиской (если это платеж по подписке)
+  subscriptionId   String?            @map("subscription_id") @db.Uuid
+  subscription     Subscription?      @relation(fields: [subscriptionId], references: [id])
+  
+  // Тип транзакции
+  type             String             @map("type") @db.VarChar(50)  // 'subscription', 'one_time_purchase'
+  
+  // Детали платежа
+  amount           Float              @map("amount")
+  currency         String             @default("RUB") @db.VarChar(3)
+  status           TransactionStatus  @default(PENDING) @map("status")
+  
+  // Что куплено (для разовых покупок)
+  contentId        String?            @map("content_id") @db.Uuid  // ID купленного курса (если разовая покупка)
+  content          Content?           @relation(fields: [contentId], references: [id])
+  
+  // Метод оплаты
+  paymentMethodId  String?            @map("payment_method_id") @db.Uuid
+  paymentMethod    PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
+  
+  // Данные от платежного провайдера
+  provider         String             @db.VarChar(50)  // 'yookassa', 'tbank', etc.
+  providerPaymentId String?           @map("provider_payment_id") @db.VarChar(255)  // ID в системе провайдера
+  providerResponse Json?              @map("provider_response") @db.JsonB  // Полный ответ от провайдера (для отладки)
+  
+  // Для возвратов
+  refundedAt       DateTime?          @map("refunded_at") @db.Timestamptz(6)
+  refundAmount     Float?             @map("refund_amount")
+  refundReason     String?            @map("refund_reason") @db.Text
+  
+  // Время
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  completedAt      DateTime?          @map("completed_at") @db.Timestamptz(6)  // Когда успешно завершена
+  failedAt         DateTime?          @map("failed_at") @db.Timestamptz(6)     // Когда произошла ошибка
+
+  @@map("transactions")
+  @@index([profileId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([providerPaymentId])
+  @@index([createdAt])
+}
+
+model PaymentMethod {
+  id               String   @id @default(cuid()) @map("payment_method_id") @db.Uuid
+  profileId        String   @map("profile_id") @db.Uuid
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  // Тип метода
+  type             String   @map("type") @db.VarChar(50)  // 'card', 'yoomoney', 'sbp'
+  
+  // Токенизированные данные (безопасное хранение)
+  provider         String   @db.VarChar(50)  // 'yookassa', 'tbank'
+  providerToken    String   @map("provider_token") @db.Text  // Токен от платежной системы
+  
+  // Для отображения пользователю (маскированные данные)
+  last4            String?  @db.VarChar(4)   // Последние 4 цифры карты
+  cardType         String?  @map("card_type") @db.VarChar(50)  // 'visa', 'mastercard', 'mir'
+  expiryMonth      Int?     @map("expiry_month")
+  expiryYear       Int?     @map("expiry_year")
+  
+  // Для SBP/кошельков
+  phoneNumber      String?  @map("phone_number") @db.VarChar(20)  // Номер телефона (для SBP)
+  
+  // Статус
+  isDefault        Boolean  @default(false) @map("is_default")  // Метод по умолчанию
+  isVerified       Boolean  @default(false) @map("is_verified")  // Подтвержден ли
+  isExpired        Boolean  @default(false) @map("is_expired")   // Просрочен (для карт)
+  
+  // Метаданные
+  metadata         Json?    @db.JsonB  // Дополнительные данные
+  
+  // Время
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)  // Soft delete (пользователь удалил метод)
+
+  // Связи
+  subscriptions    Subscription[]
+  transactions     Transaction[]
+
+  @@map("payment_methods")
+  @@index([profileId])
+  @@index([isDefault])
+  @@index([providerToken])
+}
+
+model BusinessEvent {
+  id               String   @id @default(cuid()) @map("event_id") @db.Uuid
+  profileId        String?  @map("profile_id") @db.Uuid  // Может быть null для неавторизованных
+  profile          Profile? @relation(fields: [profileId], references: [id], onDelete: SET NULL)
+  
+  // Тип события
+  eventType        String   @map("event_type") @db.VarChar(100)  // Например: 'page_view', 'course_start', 'purchase'
+  eventCategory    String   @map("event_category") @db.VarChar(50)  // 'engagement', 'conversion', 'content'
+  
+  // Объект события (на чем произошло действие)
+  objectType       String?  @map("object_type") @db.VarChar(50)  // 'content', 'comment', 'subscription'
+  objectId         String?  @map("object_id") @db.Uuid  // ID объекта
+  
+  // Данные события
+  metadata         Json?    @db.JsonB  // Гибкое поле для любых дополнительных данных
+  
+  // Техническая информация
+  ipAddress        String?  @map("ip_address") @db.VarChar(45)
+  userAgent        String?  @map("user_agent") @db.Text
+  sessionId        String?  @map("session_id") @db.VarChar(255)
+  
+  // Время
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("business_events")
+  @@index([profileId])
+  @@index([eventType])
+  @@index([eventCategory])
+  @@index([objectType, objectId])
+  @@index([createdAt])
+}
+
+model ModerationItem {
+  id               String             @id @default(cuid()) @map("moderation_item_id") @db.Uuid
+  itemType         ModerationItemType @map("item_type")
+  itemId           String             @map("item_id") @db.Uuid  // ID контента или комментария
+  
+  // Снапшот данных на момент отправки (на случай, если автор изменит после отправки)
+  itemSnapshot     Json?              @map("item_snapshot") @db.JsonB
+  
+  // Статус
+  status           ModerationStatus   @default(PENDING) @map("status")
+  
+  // Кто отправил
+  submittedByProfileId String          @map("submitted_by_profile_id") @db.Uuid
+  submittedBy       Profile            @relation("SubmittedBy", fields: [submittedByProfileId], references: [id])
+  
+  // Кто модерировал
+  moderatedByProfileId String?         @map("moderated_by_profile_id") @db.Uuid
+  moderatedBy       Profile?            @relation("ModeratedBy", fields: [moderatedByProfileId], references: [id])
+  
+  // Результат модерации
+  moderationComment String?            @map("moderation_comment") @db.Text  // Комментарий модератора
+  moderatedAt       DateTime?          @map("moderated_at") @db.Timestamptz(6)
+  
+  // Приоритет (срочные сначала)
+  priority          Int                @default(0) @map("priority")  // 0 - обычный, 1 - высокий
+  
+  // Время
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("moderation_queue")
+  @@index([status])
+  @@index([itemType, itemId])
+  @@index([submittedByProfileId])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model Notification {
+  id               String           @id @default(cuid()) @map("notification_id") @db.Uuid
+  profileId        String           @map("profile_id") @db.Uuid
+  profile          Profile          @relation(fields: [profileId], references: [id], onDelete: CASCADE)
+  
+  // Тип и канал
+  type             NotificationType @map("type")  // 'email', 'in_app', 'telegram'
+  channel          String           @map("channel") @db.VarChar(50)  // Детализация канала
+  
+  // Содержание
+  title            String           @db.VarChar(255)
+  body             String           @db.Text
+  data             Json?            @db.JsonB  // Дополнительные данные для перехода
+  
+  // Ссылка (куда перейти при клике)
+  linkUrl          String?          @map("link_url") @db.Text
+  
+  // Статус
+  isRead           Boolean          @default(false) @map("is_read")
+  isSent           Boolean          @default(false) @map("is_sent")
+  
+  // Для email/telegram (внешние ID)
+  externalId       String?          @map("external_id") @db.VarChar(255)  // ID во внешней системе
+  
+  // Ошибки отправки
+  errorMessage     String?          @map("error_message") @db.Text
+  
+  // Время
+  scheduledFor     DateTime?        @map("scheduled_for") @db.Timestamptz(6)  // Отложенная отправка
+  sentAt           DateTime?        @map("sent_at") @db.Timestamptz(6)
+  readAt           DateTime?        @map("read_at") @db.Timestamptz(6)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("notifications")
+  @@index([profileId])
+  @@index([type])
+  @@index([isRead])
+  @@index([scheduledFor])
+  @@index([createdAt])
+}
