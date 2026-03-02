@@ -9,7 +9,7 @@ interface IProps {
 const LoginForm = ({ onClose }: IProps) => {
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    passwordHash: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,16 +39,16 @@ const LoginForm = ({ onClose }: IProps) => {
       <Input
         isRequired
         label="Пароль"
-        labelPlacement="outside"
-        name="password"
+        // labelPlacement="outside"
+        name="passwordHash"
         placeholder="Введите пароль"
         type="password"
-        value={formData.password}
+        value={formData.passwordHash}
         classNames={{
           inputWrapper: "bg-default-100",
           input: "text-sm focus:outline-none",
         }}
-        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+        onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
         validate={(value) => (!value ? "Пароль обязателен" : null)}
       />
       <div className="flex w-full gap-4 items-center pt-8 justify-end">

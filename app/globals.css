@@ -7,16 +7,16 @@
 :root {
   --background: #ffffff ;
   --foreground: #171717;
-  --cololrSuond: #FFD166;
-  --cololrGrey: #7FB069;
-  --cololrBlue: #457B9D;
+  --colorSuond: #FFD166;
+  --colorGrey: #7FB069;
+  --colorBlue: #457B9D;
 
 
 
 }
 
 @theme inline {
-  --color-background: var(--cololrGrey);
+  --color-background: var(--colorGrey);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -24,8 +24,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--colorGrey);
+    --foreground: var(--foreground);
   }
 }
 
