@@ -144,6 +144,8 @@ model User {
   profile        Profile?
   sessions       Session[]
   accounts       Account[]
+
+  Authenticator Authenticator[]
   
 
   @@map("users")
@@ -151,6 +153,55 @@ model User {
   @@index([role])
   @@index([createdAt])
   @@index([deletedAt])
+}
+
+model Account {
+  id                String  @id @default(uuid()) @map("account_id") @db.Uuid
+  userId            String  @map("user_id") @db.Uuid
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(255)
+  
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.VarChar(255)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(255)
+
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+  @@index([userId])
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+ 
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String  @map("user_id") @db.Uuid
+  providerAccountId    String  @map("provider_account_id") @db.VarChar(255)
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([userId, credentialID])
 }
 
 model Profile {
@@ -198,28 +249,6 @@ model Profile {
   @@index([userId])
   @@index([nickname])
   @@index([displayName])
-}
-
-model Account {
-  id                String  @id @default(uuid()) @map("account_id") @db.Uuid
-  userId            String  @map("user_id") @db.Uuid
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type              String  @db.VarChar(50)
-  provider          String  @db.VarChar(50)
-  providerAccountId String  @map("provider_account_id") @db.VarChar(255)
-  
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String? @db.VarChar(50)
-  scope             String? @db.VarChar(255)
-  id_token          String? @db.Text
-  session_state     String? @db.VarChar(255)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-  @@index([userId])
 }
 
 model Session {

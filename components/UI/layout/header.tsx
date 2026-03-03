@@ -17,6 +17,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import  RegistrationModal  from "@/components/UI/modals/registartion.modal";
 import  LoginModal  from "@/components/UI/modals/login.modal";
+import { signOutFunc } from "@/actions/sing-out";
+import { useAuthStore } from "@/store/auth.store";
 
 export const Logo = () => {
     return (
@@ -35,6 +37,11 @@ export const Logo = () => {
 
 export default function Header() {
     const pathname = usePathname();
+    const { isAuth, session, status, setAuthState} = useAuthStore();
+
+
+
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isRegistrationOpen, setIsRegistrationOpen] = useState(false); 
     const [isLoginOpen, setIsLoginOpen]=useState(false);
@@ -47,6 +54,16 @@ export default function Header() {
         return pathname.startsWith(href);
     };
 
+    const handleSingOut = async () => {
+        try {
+            await signOutFunc();
+        } catch (error) {
+            console.log("error", error);
+        }
+
+        setAuthState("unauthenticated", null);
+    }
+
     const getNavItems = () => {
         return siteConfig.navItems.map((item) => {
             const isActive = isActiveRoute(item.href);
@@ -56,8 +73,8 @@ export default function Header() {
                         href={item.href}
                         className={`px-3 py-2 rounded-md transition-all duration-200 ${
                             isActive 
-                                ? "text-[#FFD166] font-medium" 
-                                : "text-gray-600 hover:text-[#457B9D]"
+                            ? "text-[#FFD166] font-medium" 
+                            : "text-gray-600 hover:text-[#457B9D]"
                         } hover:bg-gray-50`}
                         onClick={() => setIsMenuOpen(false)}
                     >
@@ -78,8 +95,8 @@ export default function Header() {
                         href={item.href}
                         className={`w-full block px-4 py-3 rounded-md transition-all duration-200 ${
                             isActive 
-                                ? "text-[#FFD166] bg-gray-50 font-medium" 
-                                : "text-gray-600 hover:text-[#457B9D] hover:bg-gray-50"
+                            ? "text-[#FFD166] bg-gray-50 font-medium" 
+                            : "text-gray-600 hover:text-[#457B9D] hover:bg-gray-50"
                         }`}
                         onClick={() => setIsMenuOpen(false)}
                     >
@@ -121,6 +138,9 @@ export default function Header() {
 
             {/* Правая часть - Кнопки входа/регистрации */}
             <NavbarContent justify="end" className="hidden sm:flex">
+                {isAuth && <p> Привет, {session?.user?.email}!</p>}
+                {status === "loading" ? <p>Загрузка</p> : !isAuth ? (
+                    <>
                 <NavbarItem>
                     <Button
                         color="secondary"
@@ -146,7 +166,20 @@ export default function Header() {
                         Регистрация
                     </Button>
                 </NavbarItem>
-
+                </>
+                ) : (
+                    <NavbarItem>
+                    <Button
+                        color="secondary"
+                        variant="flat"
+                        onPress={handleSingOut} // Теперь сработает чисто
+                        style={{ borderColor: siteConfig.theme.primary }}
+                    >
+                        Выйти 
+                    </Button>
+                </NavbarItem>
+                ) };
+            
             </NavbarContent>
 
             

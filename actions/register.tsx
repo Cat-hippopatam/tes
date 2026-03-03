@@ -2,21 +2,38 @@
 
 import { IFormData } from "@/types/form-data";
 import prisma from "@/utils/lib/prisma";
+import { saltAndHashPassword } from "@/utils/password";
 
 export async function registerUser(formData: IFormData) {
     const { email, passwordHash, confirmPassword, firstName, lastName} = formData;
 
+    if (passwordHash !== confirmPassword) {
+        return { error: "Пароли не совпадают" };
+    }
+
+    if (passwordHash.length < 6) {
+        return { error: "Пароль должен быть не менене 6 символов"};
+    }
+    
+
     try {
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (existingUser) {
+            return { error: "Пользователь с таким email уже существует" };
+        }
+        const pwHash = await saltAndHashPassword(passwordHash);
         const user = await prisma.user.create({
         data: {
             email,
-            passwordHash,
+            passwordHash: pwHash,
             firstName: "test", 
             lastName: "test",
         }
     });
     
-      console.log("Пользователь успешно создан:", user.id);
         return { success: true, user };
 
     } catch (error) { // Оставляем без типа или пишем (error: unknown)
