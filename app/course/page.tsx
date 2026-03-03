@@ -1,8 +1,8 @@
-
+import PageContent from "@/components/common/page-content";
 const CoursePage = () => {
     return (
         <div>
-            <h1> Курсы</h1>
+            <PageContent />
         </div>
     );
 }

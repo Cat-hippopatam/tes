@@ -1,9 +1,9 @@
-
+import PageContent from "@/components/common/page-content";
 
 const ArticlePage = () => {
     return (
         <div>
-            <h1> Статьи</h1>
+            <PageContent />
         </div>
     );
 }

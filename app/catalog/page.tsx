@@ -1,8 +1,8 @@
-
+import PageContent from "@/components/common/page-content";
 const CatalogPage = () => {
     return (
         <div>
-            <h1> Каталог</h1>
+            <PageContent />
         </div>
     );
 }

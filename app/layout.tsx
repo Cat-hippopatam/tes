@@ -8,6 +8,7 @@ import { siteConfig } from "@/config/site.config";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth/auth";
 import AppLoader from "@/hoc/app-loader";
+import TitleHeader from "@/components/UI/layout/title-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default async function RootLayout({
 
               {/* Хедер фиксированный сверху */}
               <Header />
+              <TitleHeader />
               
               {/* Основной контент с отступами от хедера */}
               <main className="flex-grow pt-20">
