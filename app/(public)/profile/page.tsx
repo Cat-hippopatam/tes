@@ -4,7 +4,7 @@
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { useProfile } from '@/hoc/useProfile';
-import ProfileForm from './components/ProfileForm';
+import ProfileForm from './settings/components/ProfileForm';
 // import AvatarUpload from './components/AvatarUpload' // позже
 // import SocialLinks from './components/SocialLinks'   // позже
 
