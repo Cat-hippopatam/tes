@@ -1,5 +1,6 @@
 // types/index.ts
 export * from './profile'
+export * from './favorites'  // ✅ Добавили
 // Здесь будут экспортироваться все типы из других файлов
 // Например:
 // export * from './calculator'
