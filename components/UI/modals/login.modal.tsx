@@ -16,3 +16,30 @@ const RegistrationModal = ({ isOpen, onClose }: IProps) => {
     );
 };
 export default RegistrationModal;
+
+// import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
+
+// export default function CustomModal({ isOpen, onClose, title, children }) {
+//   return (
+//     <Modal isOpen={isOpen} onClose={onClose} placement="center">
+//       <ModalContent>
+//         {(onClose) => (
+//           <>
+//             <ModalHeader>{title}</ModalHeader>
+//             <ModalBody>
+//               {/* LoginForm попадает сюда и будет центрирован внутри окна */}
+//                 <CustomModal isOpen={isOpen} onClose={onClose} title="Авторизация"> 
+//                     <LoginForm onClose={onClose} />
+//                 </CustomModal>
+//               {children}
+//             </ModalBody>
+//           </>
+//         )}
+//       </ModalContent>
+//     </Modal>
+//   );
+// }
+
+// export default Modal;
+
+

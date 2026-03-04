@@ -37,7 +37,7 @@ const RegistrationForm = ({onClose}: IProps) => {
     };
 
     return (
-        <Form className="w-full max-w-xs" onSubmit={handleSubmit}>
+        <Form className="w-full max-w-xs z-51" onSubmit={handleSubmit}>
             <Input
                 aria-label="Email"
                 isRequired

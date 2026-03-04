@@ -37,29 +37,60 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  return (
-    <html lang="ru" className="light">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
-      >
-        <Providers>
-          <SessionProvider session ={session}>
-            <AppLoader>
+//   return (
+//     <html lang="ru" className="light">
+//       <body
+//         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+//       >
+//         <Providers>
+//           <SessionProvider session ={session}>
+//             <AppLoader>
 
-              {/* Хедер фиксированный сверху */}
-              <Header />
-              <TitleHeader />
-              
-              {/* Основной контент с отступами от хедера */}
-              <main className="flex-grow pt-20">
-                {children}
-              </main>
-              
-              {/* Футер внизу */}
-              <Footer />
+//               {/* Хедер фиксированный сверху */}
+//               <div className="flex min-h-screen flex-col justify-between">
+//                 <div className="flex flex-col">
+
+//                   <Header />
+                
+                
+//                   {/* Основной контент с отступами от хедера */}
+//                   <main className="flex-grow pt-20">
+//                     <TitleHeader />
+//                     {children}
+//                   </main>
+//                 </div>
+                  
+//                 {/* Футер внизу */}
+//                 <Footer />
+//               </div>
+//             </AppLoader>
+//           </SessionProvider>
+//         </Providers>
+//       </body>
+//     </html>
+//   );
+// }
+
+  return (
+    <html lang="ru" className="light" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+      >
+        <SessionProvider session={session}>
+          <Providers>
+            <AppLoader>
+              {/* Используем min-h-screen прямо здесь, чтобы прижать футер */}
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-grow pt-20">
+                  <TitleHeader />
+                  {children}
+                </main>
+                <Footer />
+              </div>
             </AppLoader>
-          </SessionProvider>
-        </Providers>
+          </Providers>
+        </SessionProvider>
       </body>
     </html>
   );

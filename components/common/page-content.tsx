@@ -14,7 +14,7 @@ const PageContent = () => {
 
     const cleanHTML = DOMPurify.sanitize(pageContent.content);
 
-    return <p>{parse(cleanHTML)}</p>;
+    return <div>{parse(cleanHTML)}</div>;;
 }
 
 export default PageContent;

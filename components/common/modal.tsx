@@ -8,30 +8,37 @@ interface IProps {
     onClose: () => void;
     title: string;
     children: ReactNode;
-    size?: "xs" | "sm" | "md" | "lg" | "x1";
+    // Исправлено: "xl" вместо "x1"
+    size?: "xs" | "sm" | "md" | "lg" | "xl"; 
 }
+
 const CustomModal = ({
     isOpen,
     onClose,
     title,
     children,
-    size = "xs"
+    size = "md" // "xs" для формы логина может быть слишком узким
 }: IProps) => {
 
-
     return (
-
-        <Modal isOpen={isOpen} onClose={onClose} size={size}>
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            size={size}
+            placement="center" // Гарантирует центровку по вертикали и горизонтали
+            backdrop="blur"    // Затемнение фона поможет увидеть окно
+        >
             <ModalContent>
                 <ModalHeader className="border-b">
-                    <h3 className="text-xl text-background font-semibold">{title}</h3> 
+                    {/* Убрали text-background, чтобы текст был виден (черным в светлой теме) */}
+                    <h3 className="text-xl font-semibold">{title}</h3> 
                 </ModalHeader>
-                <ModalBody className="space-y-4 py-6">
+                <ModalBody className="py-6">
                     {children}
                 </ModalBody> 
             </ModalContent>
         </Modal>
     );
-
 };
+
 export default CustomModal;
