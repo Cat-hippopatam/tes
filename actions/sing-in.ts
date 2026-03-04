@@ -1,7 +1,9 @@
 "use server";
 
 import { signIn } from '@/auth/auth';
-export async function signInWithCredentials (email: string, password: string) { 
+import { AuthError } from "next-auth"; // Если используете Auth.js/NextAuth
+
+export async function signInWithCredentials(email: string, password: string) { 
     try {
         await signIn("credentials", {
             email, 
@@ -9,9 +11,12 @@ export async function signInWithCredentials (email: string, password: string) {
             redirect: false
         });
 
-        return ;
+        return { success: true }; // Возвращаем объект успеха
     } catch (error) {
-        console.error("Ошибка авторизаии:", error);
-        throw error;
+        if (error instanceof AuthError) {
+            return { error: error.type }; // Или кастомное сообщение
+        }
+        // Важно вернуть объект, а не выбрасывать ошибку
+        return { error: "Something went wrong" };
     }
 }

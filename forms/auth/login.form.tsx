@@ -1,131 +1,101 @@
-// "use client";
-// import { signInWithCredentials } from "@/actions/sing-in";
-// import { Form, Input, Button } from "@heroui/react";
-// import { useState } from "react";
-
-// interface IProps {
-//   onClose: () => void;
-// }
-
-// const LoginForm = ({ onClose }: IProps) => {
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     passwordHash: "",
-//   });
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     console.log("Form submitted:", formData);
-
-//     await signInWithCredentials(formData.email, formData.passwordHash)
-//     window.location.reload(); // вопрос к этой части на счет авторизации
-//     onClose();
-//   };
-
-//   return (
-//     <Form className="w-full" onSubmit={handleSubmit} validationBehavior="native">
-//       <Input
-//         isRequired
-//         label="Email"
-//         labelPlacement="outside"
-//         name="email"
-//         placeholder="Введите email"
-//         type="email"
-//         value={formData.email}
-//         // Исправлено: classNames вместо className
-//         classNames={{
-//           inputWrapper: "bg-default-100",
-//           input: "text-sm focus:outline-none",
-//         }}
-//         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-//         validate={(value) => (!value ? "Email обязателен" : null)}
-//       />
-//       <Input
-//         isRequired
-//         label="Пароль"
-//         // labelPlacement="outside"
-//         name="passwordHash"
-//         placeholder="Введите пароль"
-//         type="password"
-//         value={formData.passwordHash}
-//         classNames={{
-//           inputWrapper: "bg-default-100",
-//           input: "text-sm focus:outline-none",
-//         }}
-//         onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
-//         validate={(value) => (!value ? "Пароль обязателен" : null)}
-//       />
-//       <div className="flex w-full gap-4 items-center pt-8 justify-end">
-//         <Button variant="light" onPress={onClose}>
-//           Отмена
-//         </Button>
-//         <Button color="primary" type="submit">
-//           Войти
-//         </Button>
-//       </div>
-//     </Form>
-//   );
-// };
-
 "use client";
-import { signInWithCredentials } from "@/actions/sing-in";
-import { Form, Input, Button } from "@heroui/react";
+
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Импортируем роутер
+import { useRouter } from "next/navigation";
+import { Form, Input, Button } from "@heroui/react";
+import { EnvelopeIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { signInWithCredentials } from "@/actions/sing-in";
 
 interface IProps {
   onClose: () => void;
+  onSwitchToRegister: () => void;
 }
 
-const LoginForm = ({ onClose }: IProps) => {
+export default function LoginForm({ onClose, onSwitchToRegister }: IProps) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
-    passwordHash: "",
+    password: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-   await signInWithCredentials(formData.email, formData.passwordHash);
-    
-    // Вместо reload() обновляем данные и закрываем модалку
-    router.refresh(); 
-    onClose();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await signInWithCredentials(formData.email, formData.password);
+      
+      if (result?.error) {
+        setError("Неверный email или пароль");
+      } else {
+        router.refresh();
+        onClose();
+      }
+    } catch (err) {
+      setError("Произошла ошибка при входе");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    /* Убрали z-50 и ограничение ширины, чтобы ModalBody сам управлял формой */
-    <Form className="w-full flex flex-col gap-4" onSubmit={handleSubmit} validationBehavior="native">
+    <Form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
       <Input
         isRequired
-        label="Email"
-        labelPlacement="outside"
-        placeholder="Введите email"
         type="email"
+        label="Email"
+        placeholder="your@email.com"
         value={formData.email}
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        startContent={<EnvelopeIcon className="w-4 h-4 text-gray-400" />}
+        isInvalid={!!error}
       />
+
       <Input
         isRequired
-        label="Пароль"
-        labelPlacement="outside"
-        placeholder="Введите пароль"
         type="password"
-        value={formData.passwordHash}
-        onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
+        label="Пароль"
+        placeholder="••••••••"
+        value={formData.password}
+        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+        startContent={<LockClosedIcon className="w-4 h-4 text-gray-400" />}
       />
-      <div className="flex w-full gap-2 items-center pt-4 justify-end">
-        <Button variant="flat" onPress={onClose}>
+
+      {error && (
+        <div className="p-3 rounded-lg text-sm bg-red-50 text-red-600 w-full">
+          {error}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3 w-full pt-4">
+        <Button
+          type="submit"
+          isLoading={isLoading}
+          className="w-full"
+          style={{ backgroundColor: "#F4A261", color: "white" }}
+        >
+          {isLoading ? "Вход..." : "Войти"}
+        </Button>
+
+        <Button type="button" variant="light" onPress={onClose} className="w-full">
           Отмена
         </Button>
-        <Button color="primary" type="submit">
-          Войти
-        </Button>
+
+        <div className="text-center text-sm mt-2">
+          <span className="text-gray-500">Нет аккаунта? </span>
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className="font-medium hover:underline"
+            style={{ color: "#2A9D8F" }}
+          >
+            Зарегистрироваться
+          </button>
+        </div>
       </div>
     </Form>
   );
-};
-
-
-export default LoginForm;
+}

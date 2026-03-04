@@ -4,50 +4,34 @@ import { IFormData } from "@/types/form-data";
 import prisma from "@/utils/lib/prisma";
 import { saltAndHashPassword } from "@/utils/password";
 
+// Используем Omit, чтобы сказать TS: "Все поля из IFormData, кроме confirmPassword"
+// Либо просто используйте конкретные поля, которые приходят из формы
 export async function registerUser(formData: IFormData) {
-    const { email, passwordHash, confirmPassword, firstName, lastName} = formData;
+    const { email, passwordHash, confirmPassword, firstName, lastName } = formData;
 
+    // Валидация на стороне сервера (дублируем для безопасности)
     if (passwordHash !== confirmPassword) {
         return { error: "Пароли не совпадают" };
     }
 
-    if (passwordHash.length < 6) {
-        return { error: "Пароль должен быть не менене 6 символов"};
-    }
-    
-
     try {
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) return { error: "Пользователь уже существует" };
 
-        if (existingUser) {
-            return { error: "Пользователь с таким email уже существует" };
-        }
-        const pwHash = await saltAndHashPassword(passwordHash);
+        const hashed = await saltAndHashPassword(passwordHash);
+
         const user = await prisma.user.create({
-        data: {
-            email,
-            passwordHash: pwHash,
-            firstName: "test", 
-            lastName: "test",
-        }
-    });
+            data: {
+                email,
+                passwordHash: hashed,
+                firstName, // Используем реальное имя вместо "test"
+                lastName,  // Используем реальную фамилию вместо "test"
+            }
+        });
     
         return { success: true, user };
-
-    } catch (error) { // Оставляем без типа или пишем (error: unknown)
-    if (error instanceof Error) {
-        // Теперь TS знает, что у error есть свойство message
-        console.error("Ошибка регистрации:", error.message);
-        
-        // Проверка специфической ошибки Prisma (уникальный email)
-        // if ((error as any).code === 'P2002') { 
-        //     return { success: false, error: "Этот email уже занят" };
-        // }
-    }
-    
-    return { success: false, error: "Произошла непредвиденная ошибка" };
+    } catch (error) {
+        console.error("Ошибка:", error);
+        return { error: "Ошибка сервера" };
     }
 }
-
