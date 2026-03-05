@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import DOMPurify from 'isomorphic-dompurify';
 import { ArrowLeft, PlayCircle, FileText, Clock, Bookmark } from 'lucide-react';
+import Reactions from '@/components/common/reactions';
+import ViewTracker from '@/components/common/view-tracker';
 
 async function fetchLesson(slug: string) {
   const baseUrl =
@@ -78,7 +80,9 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
     : '';
 
   return (
-    <div className="min-h-screen bg-[#F8F6F3]">
+    <>
+      <ViewTracker contentId={lesson.id} />
+      <div className="min-h-screen bg-[#F8F6F3]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
@@ -194,17 +198,13 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
             {/* Premium Gate */}
             <PremiumGate isPremium={lesson.courseIsPremium} />
 
-            {/* Реакции (заглушка — будет реализовано на Этапе 4) */}
+            {/* Реакции */}
             <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center gap-4">
-                <button className="flex items-center gap-1 text-[#6C757D] hover:text-[#2A9D8F] transition-colors">
-                  <span>👍</span>
-                  <span className="text-sm">{lesson.likesCount || 0}</span>
-                </button>
-                <button className="flex items-center gap-1 text-[#6C757D] hover:text-[#FF6B6B] transition-colors">
-                  <span>👎</span>
-                </button>
-              </div>
+              <Reactions 
+                contentId={lesson.id} 
+                initialLikes={lesson.likesCount || 0}
+                initialDislikes={lesson.dislikesCount || 0}
+              />
             </div>
 
             {/* Навигация между уроками */}
@@ -261,6 +261,6 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           </aside>
         </div>
       </div>
-    </div>
+    </>
   );
 }

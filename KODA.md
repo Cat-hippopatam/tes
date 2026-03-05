@@ -368,10 +368,19 @@ export async function getData() {
 - Кнопки с data-open-modal для открытия модалок оплаты
 
 ### Этап 4. ЛК: прогресс/история/избранное/реакции
-- [ ] `/profile/history` — история просмотров
-- [ ] Progress API и UI
-- [ ] Reactions (лайк/дизлайк контента и комментариев)
-- [ ] Синхронизация избранного с API
+- [x] `/profile/history` — история просмотров
+- [x] Progress API и UI
+- [x] Reactions (лайк/дизлайк контента и комментариев)
+- [x] Синхронизация избранного с API
+
+**Выполнено:**
+- API: GET/POST /api/user/history — история просмотров
+- API: GET/POST /api/user/progress — прогресс обучения
+- API: GET/POST /api/reactions — лайки/дизлайки контента
+- API: GET/POST /api/user/favorites — избранное
+- Компонент Reactions для интерактивных реакций
+- Компонент ViewTracker для записи просмотров
+- Автоматическое создание сертификата при завершении курса
 
 ### Этап 5. Авторы и модерация
 - [ ] `/author/dashboard` — кабинет автора
