@@ -21,10 +21,10 @@ export default defineConfig({
   datasource: {
     url: process.env.DATABASE_URL!,
   },
-  generator: {
-    name: "client",
-    provider: "prisma-client-js",
-  },
+  // generator: {
+  //   name: "client",
+  //   provider: "prisma-client-js",
+  // },
   migrations: {
     seed: "tsx ./prisma/seed.ts",
   },

@@ -1,42 +1,38 @@
 // types/courses.ts
-export type CourseStatus = 'not_started' | 'in_progress' | 'completed'
+import { Content, Module, Progress, Certificate } from "@prisma/client"
 
-export interface UserCourse {
-  id: string
-  courseId: string
-  title: string
-  description: string
-  imageUrl?: string
-  status: CourseStatus
-  progress: number  // 0-100
-  lessonsCompleted: number
+export type ModuleWithLessons = Module & {
+  lessons: Content[]
+}
+
+export type ContentWithModules = Content & {
+  modules: ModuleWithLessons[]
+  progress: Progress[]
+  certificates: Certificate[]
+}
+
+export type CourseWithProgress = ContentWithModules & {
   totalLessons: number
-  lastAccessedAt: Date
-  completedAt?: Date | null
+  completedLessons: number
+  progressPercent: number
   certificate?: Certificate | null
 }
 
-export interface Certificate {
+export type ContinueLearningItem = {
   id: string
-  courseName: string
-  issuedAt: Date
-  imageUrl: string
-  pdfUrl: string
-}
-
-export interface ContinueLearningItem {
-  courseId: string
   title: string
-  imageUrl?: string
-  lastLesson: string
+  image?: string | null
+  lastModuleId: string
+  lastLessonId: string
   progress: number
-  timeRemaining: string // например, "2 часа осталось"
+  updatedAt: Date
 }
 
-export interface CourseStat {
+export type CoursesStats = {
   totalCourses: number
   completedCourses: number
   inProgressCourses: number
   totalCertificates: number
-  totalHoursSpent: number
+  totalLessons: number
+  completedLessons: number
 }

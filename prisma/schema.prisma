@@ -244,6 +244,7 @@ model Profile {
   businessEvents      BusinessEvent[]    // для связи с BusinessEvent.profile
   submittedModeration ModerationItem[]   @relation("SubmittedBy")   // для moderation
   moderatedModeration ModerationItem[]   @relation("ModeratedBy")   // для moderation
+  certificates   Certificate[]  // Обратная связь для сертификатов
 
   @@map("profiles")
   @@index([userId])
@@ -264,6 +265,8 @@ model Session {
   @@index([sessionToken])
   @@index([userId])
 }
+
+
 
 model Content {
   id               String        @id @default(uuid()) @map("content_id") @db.Uuid
@@ -322,6 +325,7 @@ model Content {
   history          History[]
   progress         Progress[]
   tags             TagContent[]
+  certificates     Certificate[]  // Обратная связь для сертификатов
   // Это поле ОБЯЗАТЕЛЬНО добавить для работы связи "курс -> модули"
   courseModules    Module[]      @relation("CourseModules")  
   purchases        Transaction[]  // обратная связь для купленного контента
@@ -880,4 +884,37 @@ model Notification {
   @@index([isRead])
   @@index([scheduledFor])
   @@index([createdAt])
+}
+
+// Добавить после модели Progress или в соответствующем месте
+model Certificate {
+  id               String   @id @default(uuid()) @map("certificate_id") @db.Uuid
+  profileId        String   @map("profile_id") @db.Uuid
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  contentId        String   @map("content_id") @db.Uuid
+  content          Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  // Данные сертификата
+  issuedAt         DateTime @default(now()) @map("issued_at") @db.Timestamptz(6)
+  completedAt      DateTime @map("completed_at") @db.Timestamptz(6)  // Когда курс был завершен
+  
+  // Файлы сертификата
+  imageUrl         String?  @map("image_url") @db.Text  // PNG/JPG версия
+  pdfUrl           String?  @map("pdf_url") @db.Text    // PDF версия для печати
+  
+  // Номер сертификата (уникальный)
+  certificateNumber String  @unique @map("certificate_number") @db.VarChar(50)  // Например: "EC-2025-0001"
+  
+  // Метаданные
+  metadata         Json?    @db.JsonB  // Доп. данные: имя в сертификате, шаблон и т.д.
+  
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([profileId, contentId])  // Один сертификат на курс для пользователя
+  @@map("certificates")
+  @@index([profileId])
+  @@index([contentId])
+  @@index([certificateNumber])
 }

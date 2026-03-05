@@ -1,247 +1,128 @@
-"use client";
+'use client';
 
-import { siteConfig } from "@/config/site.config";
-import { 
-    Navbar, 
-    NavbarBrand, 
-    NavbarContent, 
-    NavbarItem, 
-    Button,
-    NavbarMenu,
-    NavbarMenuItem,
-    NavbarMenuToggle
-} from "@heroui/react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import  RegistrationModal  from "@/components/UI/modals/registartion.modal";
-import  LoginModal  from "@/components/UI/modals/login.modal";
-import { signOutFunc } from "@/actions/sing-out";
-import { useAuthStore } from "@/store/auth.store";
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/common/Button';
 
-export const Logo = () => {
-    return (
-        <div className="relative w-[30px] h-[30px]">
-            <Image 
-                src="/logo.png" 
-                alt={siteConfig.shortTitle || siteConfig.title}
-                fill
-                sizes="30px"
-                priority
-                className="object-contain"
-            />
-        </div>
-    );
-};
+const navigation = [
+  { name: 'Курсы', href: '/courses' },
+  { name: 'Калькуляторы', href: '/calculator' },
+  { name: 'Статьи', href: '/articles' },
+  { name: 'Вопросы и ответы', href: '/faq' },
+];
 
 export default function Header() {
-    const pathname = usePathname();
-    const { isAuth, session, status, setAuthState} = useAuthStore();
+  const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-
-
-    
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isRegistrationOpen, setIsRegistrationOpen] = useState(false); 
-    const [isLoginOpen, setIsLoginOpen]=useState(false);
-
-    // Функция для проверки активного пункта меню (учитывает вложенные пути)
-    const isActiveRoute = (href: string) => {
-        if (href === '/') {
-            return pathname === href;
-        }
-        return pathname.startsWith(href);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    const handleSingOut = async () => {
-        try {
-            await signOutFunc();
-        } catch (error) {
-            console.log("error", error);
-        }
+  return (
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white shadow-md py-2' : 'bg-white py-3'
+      }`}
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between">
+          {/* Логотип */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-[#F4A261] rounded-xl flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-xl">Э</span>
+            </div>
+            <span className="font-bold text-xl text-[#264653]">Экономикус</span>
+          </Link>
 
-        setAuthState("unauthenticated", null);
-    }
+          {/* Десктопная навигация */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`text-base font-medium transition-colors hover:text-[#F4A261] ${
+                  pathname === item.href ? 'text-[#F4A261]' : 'text-[#264653]'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
 
-    const getNavItems = () => {
-        return siteConfig.navItems.map((item) => {
-            const isActive = isActiveRoute(item.href);
-            return (
-                <NavbarItem key={item.href}>
-                    <Link 
-                        href={item.href}
-                        className={`px-3 py-2 rounded-md transition-all duration-200 ${
-                            isActive 
-                            ? "text-[#FFD166] font-medium" 
-                            : "text-gray-600 hover:text-[#457B9D]"
-                        } hover:bg-gray-50`}
-                        onClick={() => setIsMenuOpen(false)}
-                    >
-                        {item.label}
-                    </Link>
-                </NavbarItem>
-            );
-        });
-    };
+          {/* Правая часть: поиск и кнопки */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Поиск */}
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <svg className="w-5 h-5 text-[#264653]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
 
-    // Мобильное меню
-    const getMobileNavItems = () => {
-        return siteConfig.navItems.map((item) => {
-            const isActive = isActiveRoute(item.href);
-            return (
-                <NavbarMenuItem key={item.href}>
-                    <Link 
-                        href={item.href}
-                        className={`w-full block px-4 py-3 rounded-md transition-all duration-200 ${
-                            isActive 
-                            ? "text-[#FFD166] bg-gray-50 font-medium" 
-                            : "text-gray-600 hover:text-[#457B9D] hover:bg-gray-50"
-                        }`}
-                        onClick={() => setIsMenuOpen(false)}
-                    >
-                        {item.label}
-                    </Link>
-                </NavbarMenuItem>
-            );
-        });
-    };
+            {/* Кнопки авторизации */}
+            <Link href="/auth/signin">
+              <Button variant="outline" size="sm" className="border-[#F4A261] text-[#F4A261] hover:bg-[#F4A261] hover:text-white">
+                Войти
+              </Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button variant="primary" size="sm" className="bg-[#F4A261] hover:bg-[#e08e4a] text-white">
+                Регистрация
+              </Button>
+            </Link>
+          </div>
 
-    return (
-        <Navbar 
-            onMenuOpenChange={setIsMenuOpen}
-            isMenuOpen={isMenuOpen}
-            maxWidth="xl"
-            className="bg-dark/80 backdrop-blur-md border-b border-gray-200"
-            position="sticky"
-        >
-            {/* Левая часть - Логотип и бренд */}
-            <NavbarBrand>
-                <Link href="/" className="flex items-center gap-2">
-                    <Logo />
-                    <p className="font-bold text-xl" style={{ color: siteConfig.theme.primary }}>
-                        {siteConfig.shortTitle || "Экономикус"}
-                    </p>
+          {/* Мобильная кнопка меню */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-6 h-6 text-[#264653]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Мобильное меню */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-100">
+            <nav className="flex flex-col space-y-3 pt-4">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-3 py-2 rounded-lg text-base font-medium transition-colors ${
+                    pathname === item.href
+                      ? 'bg-[#F4A261] text-white'
+                      : 'text-[#264653] hover:bg-gray-100'
+                  }`}
+                >
+                  {item.name}
                 </Link>
-            </NavbarBrand>
-
-            {/* Кнопка мобильного меню */}
-            <NavbarMenuToggle
-                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                className="sm:hidden"
-            />
-
-            {/* Десктопное меню */}
-            <NavbarContent className="hidden sm:flex gap-6" justify="center">
-                {getNavItems()}
-            </NavbarContent>
-
-            {/* Правая часть - Кнопки входа/регистрации */}
-            <NavbarContent justify="end" className="hidden sm:flex">
-                {isAuth && <p> Привет, {session?.user?.email}!</p>}
-                {status === "loading" ? <p>Загрузка</p> : !isAuth ? (
-                    <>
-                <NavbarItem>
-                    <Button
-                        color="secondary"
-                        variant="flat"
-                        onPress={() => setIsLoginOpen(true)} // Теперь сработает чисто
-                        style={{ borderColor: siteConfig.theme.primary }}
-                    >
-                        Логин 
-                    </Button>
-                </NavbarItem>
-
-                <NavbarItem>
-                    <Button
-                        color="primary"
-                        variant="flat"
-                        onPress={() => setIsRegistrationOpen(true)}
-                        style={{ 
-                            backgroundColor: siteConfig.theme.accent,
-                            color: '#1F2937'
-                        }}
-                        className="font-medium hover:opacity-90 transition-opacity"
-                    >
-                        Регистрация
-                    </Button>
-                </NavbarItem>
-                </>
-                ) : (
-                    <NavbarItem>
-                    <Button
-                        color="secondary"
-                        variant="flat"
-                        onPress={handleSingOut} // Теперь сработает чисто
-                        style={{ borderColor: siteConfig.theme.primary }}
-                    >
-                        Выйти 
-                    </Button>
-                </NavbarItem>
-                ) };
-            
-            </NavbarContent>
-
-            
-
-            {/* Мобильное меню */}
-            <NavbarMenu className="pt-6">
-                {/* Кнопки входа/регистрации для мобильных */}
-                <div className="flex gap-2 mb-4 px-4">
-                    <Button
-                        as={Link} color="secondary"
-                        href="#"
-                        variant="flat"
-                        onPress={() => setIsLoginOpen(true)}
-                        style={{ borderColor: siteConfig.theme.primary }}
-                        >
-                        Логин 
-                        
-                        </Button>
-                    {/* <Button 
-                        as={Link}
-                        href="/auth/login"
-                        variant="bordered"
-                        className="flex-1"
-                        style={{ borderColor: siteConfig.theme.primary }}
-                    >
-                        Вход
-                    </Button> */}
-                    <Button
-                    as={Link} color="primary" href="#"
-                    variant="flat"
-                    onPress={() => setIsRegistrationOpen(true)}
-                    style={{ 
-                            backgroundColor: siteConfig.theme.accent,
-                            color: '#1F2937'
-                        }}
-                        className="flex-1 font-medium"
-                    >
+              ))}
+              <div className="flex gap-2 pt-2">
+                <Link href="/auth/signin" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full border-[#F4A261] text-[#F4A261]">
+                    Войти
+                  </Button>
+                </Link>
+                <Link href="/auth/signup" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="primary" size="sm" className="w-full bg-[#F4A261] text-white">
                     Регистрация
-                    </Button>
-                    {/* <Button 
-                        as={Link}
-                        href="/auth/register"
-                        style={{ 
-                            backgroundColor: siteConfig.theme.accent,
-                            color: '#1F2937'
-                        }}
-                        className="flex-1 font-medium"
-                    >
-                        Регистрация
-                    </Button> */}
-                </div>
-
-                {/* Навигация в мобильном меню */}
-                <div className="flex flex-col gap-1">
-                    {getMobileNavItems()}
-                </div>
-            </NavbarMenu>
-
-            <RegistrationModal isOpen={isRegistrationOpen} onClose={() => setIsRegistrationOpen(false)} />
-            <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-        </Navbar>
-
-        
-    );
+                  </Button>
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
 }

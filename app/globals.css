@@ -1,95 +1,162 @@
-@import "tailwindcss";
-
-/* 1. Настройки плагинов и путей (v4 style) */
-@plugin "./hero.ts";
-@source "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
-@custom-variant dark (&:is(.dark *));
-
-/* 2. Конфигурация темы (вместо старого tailwind.config.js) */
-@theme {
-  --color-blue: #457B9D;
-  --color-sand: #FFD166;
-  --color-green: #7FB069;
-  --color-bg-warm: #F8F6F3;
-  --color-bg-warmer: #FBF9F6;
-  --color-bg-green: #F4F7F5;
-  --color-text-dark: #2C3E50;
-  --color-text-mid: #5A6A7A;
-  
-  --font-display: "Fraunces", serif;
-  --font-body: "Plus Jakarta Sans", sans-serif;
-  --font-ui: "Space Grotesk", sans-serif;
-
-  /* Анимации */
-  --animate-fade-in-up: fadeInUp 0.6s ease-out forwards;
-  --animate-fade-in: fadeIn 0.5s ease-out forwards;
-  --animate-slide-in-right: slideInRight 0.7s ease-out forwards;
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(40px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-}
-
-/* 3. Шрифты */
+/* Сначала все @import */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
 
-/* 4. Базовые стили */
-@layer base {
-  :root {
-    --background: #F8F6F3;
-    --foreground: #2C3E50;
-    --border: #E5E7EB;
-  }
+/* Tailwind v4 imports */
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
 
-  html {
-    scroll-behavior: smooth;
-  }
+/* CSS переменные */
+:root {
+  --background: #F8F6F3;
+  --foreground: #264653;
+  --primary: #F4A261;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2A9D8F;
+  --secondary-foreground: #FFFFFF;
+  --muted: #6C757D;
+  --muted-foreground: #FFFFFF;
+  --accent: #F4A261;
+  --accent-foreground: #264653;
+  --destructive: #FF6B6B;
+  --destructive-foreground: #FFFFFF;
+  --border: #E9ECEF;
+  --input: #E9ECEF;
+  --ring: #F4A261;
+  --radius: 0.5rem;
+}
 
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 18px;
-    line-height: 1.65;
-  }
+.dark {
+  --background: #1a1a1a;
+  --foreground: #F8F9FA;
+  --primary: #F4A261;
+  --primary-foreground: #264653;
+  --secondary: #2A9D8F;
+  --secondary-foreground: #F8F9FA;
+  --muted: #6C757D;
+  --muted-foreground: #F8F9FA;
+  --accent: #F4A261;
+  --accent-foreground: #F8F9FA;
+  --destructive: #FF6B6B;
+  --destructive-foreground: #F8F9FA;
+  --border: #2d2d2d;
+  --input: #2d2d2d;
+  --ring: #F4A261;
+}
 
-  h1, h2, h3, h4 {
-    font-family: 'Fraunces', serif;
-    font-weight: 700;
-    line-height: 1.15;
-  }
+/* Базовые стили */
+* {
+  border-color: var(--border);
+}
 
-  * {
-    border-color: var(--border);
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Кастомные классы */
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 1280px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
   }
 }
 
-/* 5. Утилиты */
-@layer utilities {
-  .card-shadow {
-    box-shadow: 0 4px 16px rgba(69, 123, 157, 0.08), 0 1px 4px rgba(69, 123, 157, 0.04);
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
   }
-  .card-shadow-hover {
-    box-shadow: 0 8px 32px rgba(69, 123, 157, 0.14), 0 2px 8px rgba(69, 123, 157, 0.08);
-  }
-  .animation-delay-200 { animation-delay: 200ms; }
-  .animation-delay-400 { animation-delay: 400ms; }
-  .animation-delay-600 { animation-delay: 600ms; }
 }
 
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
 
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
 
-/* Мобильные (до 640px) */
-@media (max-width: 640px) { }
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
 
-/* Планшеты (641px - 1024px) */
-@media (min-width: 641px) and (max-width: 1024px) { }
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-primary:hover {
+  background-color: #e08e4a;
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: white;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-secondary:hover {
+  background-color: #238b7e;
+}
+
+.btn-outline {
+  border-width: 2px;
+  border-color: var(--primary);
+  color: var(--primary);
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}

@@ -1,4 +1,3 @@
-// app/(public)/profile/courses/data/courses-service.ts
 import { auth } from "@/auth/auth";
 import { prisma } from "@/utils/lib/prisma";
 import { UserCourse, Certificate, ContinueLearningItem, CourseStat } from "@/types/courses";
@@ -7,13 +6,16 @@ import { ContentType } from "@prisma/client";
 /**
  * Получение статистики курсов пользователя
  */
-export async function getCourseStats(userId: string): Promise<CourseStat> {
+export async function getCourseStats(): Promise<CourseStat> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Пользователь не авторизован");
+  }
+
   // Получаем профиль пользователя
   const profile = await prisma.profile.findUnique({
-    where: { userId },
-    select: {
-      id: true
-    }
+    where: { userId: session.user.id },
+    select: { id: true }
   });
 
   if (!profile) {
@@ -43,26 +45,23 @@ export async function getCourseStats(userId: string): Promise<CourseStat> {
 
   // Подсчитываем статистику
   const totalCourses = progresses.length;
-    const completedCourses = progresses.filter(p => p.status === "completed" as const).length;
-    const inProgressCourses = progresses.filter(p => p.status === "in_progress" as const).length;
+  const completedCourses = progresses.filter(p => p.status === "completed").length;
+  const inProgressCourses = progresses.filter(p => p.status === "in_progress").length;
 
   // Получаем количество сертификатов
-  const totalCertificates = await prisma.content.findMany({
+  const completedCoursesIds = progresses
+    .filter(p => p.status === "completed")
+    .map(p => p.content.id);
+  
+  const totalCertificates = await prisma.certificate.count({
     where: {
-      authorProfileId: profile.id,
-      type: ContentType.COURSE,
-      progress: {
-        some: {
-          profileId: profile.id,
-          status: "completed"
-        }
-      }
+      profileId: profile.id,
+      contentId: { in: completedCoursesIds }
     }
-  }).then(courses => courses.length);
+  });
 
   // Вычисляем общее время обучения (приближенно)
-  const totalHoursSpent = progresses.reduce((sum, progress) => {
-    // Приблизительное время на основе прогресса и предполагаемой длительности
+  const totalHoursSpent = progresses.reduce((sum: number, progress) => {
     return sum + Math.floor(progress.progressPercent / 10);
   }, 0);
 
@@ -78,17 +77,15 @@ export async function getCourseStats(userId: string): Promise<CourseStat> {
 /**
  * Получение курсов пользователя
  */
-export async function getUserCourses(userId: string): Promise<UserCourse[]> {
+export async function getUserCourses(): Promise<UserCourse[]> {
   const session = await auth();
-  if (!session) {
+  if (!session?.user?.id) {
     throw new Error("Пользователь не авторизован");
   }
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
-    select: {
-      id: true
-    }
+    select: { id: true }
   });
 
   if (!profile) {
@@ -106,12 +103,12 @@ export async function getUserCourses(userId: string): Promise<UserCourse[]> {
     include: {
       content: {
         include: {
-          modules: {
+          module: { // Исправлено: с 'modules' на 'module'
             include: {
-               lessons: {
-                 where: {
-                   status: "PUBLISHED" as const
-                 },
+              lessons: {
+                where: {
+                  status: "PUBLISHED"
+                },
                 select: {
                   id: true
                 }
@@ -126,16 +123,20 @@ export async function getUserCourses(userId: string): Promise<UserCourse[]> {
   // Преобразуем данные в формат UserCourse
   return progresses.map(progress => {
     const course = progress.content;
-    const totalLessons = course.modules.reduce((sum, module) => sum + module.lessonsCount, 0);
+    
+    // Исправлено: считаем длину массива lessons вместо lessonsCount
+    const totalLessons = course.module.reduce(
+      (sum: number, moduleItem: any) => sum + (moduleItem.lessons?.length || 0), 
+      0
+    );
+    
     const completedLessons = progress.completedLessons;
 
     // Определяем статус курса
     let status: 'not_started' | 'in_progress' | 'completed' = 'not_started';
-    if (progress.status === 'completed' as const) {
+    if (progress.status === 'completed') {
       status = 'completed';
-    } else if (progress.status === 'in_progress' as const) {
-      status = 'in_progress';
-    } else if (completedLessons > 0) {
+    } else if (progress.status === 'in_progress' || completedLessons > 0) {
       status = 'in_progress';
     }
 
@@ -150,8 +151,8 @@ export async function getUserCourses(userId: string): Promise<UserCourse[]> {
       lessonsCompleted: completedLessons,
       totalLessons,
       lastAccessedAt: progress.lastViewedAt,
-      completedAt: progress.completedAt || null,
-      certificate: null // Пока без сертификатов, можно добавить позже
+      completedAt: progress.completedAt,
+      certificate: null
     };
   });
 }
@@ -159,31 +160,29 @@ export async function getUserCourses(userId: string): Promise<UserCourse[]> {
 /**
  * Получение списка для продолжения обучения
  */
-export async function getContinueLearning(userId: string): Promise<ContinueLearningItem[]> {
+export async function getContinueLearning(): Promise<ContinueLearningItem[]> {
   const session = await auth();
-  if (!session) {
+  if (!session?.user?.id) {
     throw new Error("Пользователь не авторизован");
   }
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
-    select: {
-      id: true
-    }
+    select: { id: true }
   });
 
   if (!profile) {
     throw new Error("Профиль пользователя не найден");
   }
 
-  // Получаем курсы и модули, на которых пользователь остановился
+  // Получаем курсы, на которых пользователь остановился
   const progresses = await prisma.progress.findMany({
     where: {
       profileId: profile.id,
       content: {
         type: ContentType.COURSE
       },
-      status: "in_progress" as const
+      status: "in_progress"
     },
     include: {
       content: {
@@ -194,65 +193,62 @@ export async function getContinueLearning(userId: string): Promise<ContinueLearn
         }
       }
     },
-    take: 2 // Ограничиваем двумя последними
+    take: 2,
+    orderBy: {
+      lastViewedAt: 'desc'
+    }
   });
 
-  // Возвращаем только базовую информацию для отображения
   return progresses.map(progress => ({
     courseId: progress.content.id,
     title: progress.content.title,
     imageUrl: progress.content.coverImage || undefined,
-    lastLesson: "Последний пройденный урок", // Можно улучшить, добавив информацию о последнем уроке
+    lastLesson: "Продолжить обучение",
     progress: progress.progressPercent,
-    timeRemaining: `${Math.max(1, 10 - Math.floor(progress.progressPercent / 10))} часов` // Приблизительно
+    timeRemaining: `${Math.max(1, 10 - Math.floor(progress.progressPercent / 10))} ч`
   }));
 }
 
 /**
  * Получение сертификатов пользователя
  */
-export async function getUserCertificates(userId: string): Promise<Certificate[]> {
+export async function getUserCertificates(): Promise<Certificate[]> {
   const session = await auth();
-  if (!session) {
+  if (!session?.user?.id) {
     throw new Error("Пользователь не авторизован");
   }
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
-    select: {
-      id: true
-    }
+    select: { id: true }
   });
 
   if (!profile) {
     throw new Error("Профиль пользователя не найден");
   }
 
-  // Находим завершенные курсы пользователя
-  const completedCourses = await prisma.progress.findMany({
+  // Получаем сертификаты пользователя
+  const certificates = await prisma.certificate.findMany({
     where: {
-      profileId: profile.id,
-      status: "completed" as const,
-      content: {
-        type: ContentType.COURSE
-      }
+      profileId: profile.id
     },
     include: {
       content: {
         select: {
-          id: true,
           title: true
         }
       }
+    },
+    orderBy: {
+      issuedAt: 'desc'
     }
   });
 
-  // Возвращаем сертификаты (в реальной реализации нужно хранить сертификаты отдельно)
-  return completedCourses.map((course, index) => ({
-    id: `cert_${course.content.id}`,
-    courseName: course.content.title,
-    issuedAt: course.completedAt || new Date(),
-    imageUrl: `/images/certificates/${course.content.id}.jpg`,
-    pdfUrl: `/certificates/${course.content.id}.pdf`
+  return certificates.map(cert => ({
+    id: cert.id,
+    courseName: cert.content.title,
+    issuedAt: cert.issuedAt,
+    imageUrl: cert.imageUrl || `/images/certificates/default.jpg`,
+    pdfUrl: cert.pdfUrl || '#'
   }));
 }
