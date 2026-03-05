@@ -1,5 +1,7 @@
 // prisma/seed.ts
-import { PrismaClient, Role, ContentType, ContentStatus, DifficultyLevel, SubscriptionStatus, TransactionStatus } from '@prisma/client'
+import { PrismaClient, Role, ContentType, ContentStatus, DifficultyLevel, SubscriptionStatus, TransactionStatus, VideoProvider, ModerationStatus } from '@prisma/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
 
 // Добавим проверку наличия DATABASE_URL
@@ -9,7 +11,10 @@ if (!process.env.DATABASE_URL) {
   process.exit(1)
 }
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL!
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('🌱 Starting seed...')
@@ -19,30 +24,31 @@ async function main() {
     // Clean up existing data
     console.log('🧹 Cleaning existing data...')
     
-    await prisma.$executeRaw`TRUNCATE TABLE "Certificate" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Notification" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "ModerationItem" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "BusinessEvent" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "PaymentMethod" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Transaction" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Subscription" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Progress" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "History" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Favorite" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "CommentReaction" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "ContentReaction" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Comment" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Attachment" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "TagContent" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Module" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Content" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Tag" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Profile" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Account" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Session" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "Authenticator" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "VerificationToken" CASCADE;`
-    await prisma.$executeRaw`TRUNCATE TABLE "User" CASCADE;`
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE 
+      certificates,
+      notifications,
+      moderation_queue,
+      business_events,
+      payment_methods,
+      transactions,
+      subscriptions,
+      progress,
+      history,
+      favorites,
+      comment_reactions,
+      content_reactions,
+      comments,
+      attachments,
+      tag_content,
+      modules,
+      content,
+      tags,
+      profiles,
+      accounts,
+      sessions,
+      users
+      CASCADE;`)
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "VerificationToken", "Authenticator" CASCADE;')
 
     console.log('✅ Cleaned existing data')
 
@@ -210,13 +216,13 @@ async function main() {
     const lessons = await Promise.all([
       // Course 1 lessons
       prisma.content.create({ data: { type: ContentType.ARTICLE, title: 'Что такое финансовая грамотность', slug: 'chto-takoe-finansovaya-gramotnost', description: 'Введение в тему', moduleId: course1Modules[0].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 0 } }),
-      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Почему важно управлять деньгами', slug: 'pochemu-vazhno-upravlyat-dengami', description: 'Мотивационное видео', videoUrl: 'https://youtube.com/watch?v=abc', videoProvider: 'YOUTUBE', videoDuration: 600, moduleId: course1Modules[0].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 1 } }),
+      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Почему важно управлять деньгами', slug: 'pochemu-vazhno-upravlyat-dengami', description: 'Мотивационное видео', videoUrl: 'https://youtube.com/watch?v=abc', videoProvider: VideoProvider.YOUTUBE, videoDuration: 600, moduleId: course1Modules[0].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 1 } }),
       prisma.content.create({ data: { type: ContentType.ARTICLE, title: 'Как вести бюджет', slug: 'kak-vesti-byudzhet', description: 'Методы ведения бюджета', moduleId: course1Modules[1].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 0 } }),
       prisma.content.create({ data: { type: ContentType.ARTICLE, title: '50/30/20 правило', slug: '50-30-20-pravilo', description: 'Простое правило бюджета', moduleId: course1Modules[1].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 1 } }),
-      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Практика составления бюджета', slug: 'praktika-sostavleniya-byudzheta', description: 'Видео-практикум', videoUrl: 'https://youtube.com/watch?v=def', videoProvider: 'YOUTUBE', videoDuration: 1200, moduleId: course1Modules[1].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 2 } }),
+      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Практика составления бюджета', slug: 'praktika-sostavleniya-byudzheta', description: 'Видео-практикум', videoUrl: 'https://youtube.com/watch?v=def', videoProvider: VideoProvider.YOUTUBE, videoDuration: 1200, moduleId: course1Modules[1].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 2 } }),
       prisma.content.create({ data: { type: ContentType.ARTICLE, title: 'Виды сбережений', slug: 'vidy-sberezheniy', description: 'Обзор инструментов', moduleId: course1Modules[2].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 0 } }),
       prisma.content.create({ data: { type: ContentType.ARTICLE, title: 'Введение в инвестиции', slug: 'vvod-v-investitsii', description: 'Первые шаги', moduleId: course1Modules[2].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 1 } }),
-      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Инвестиционные инструменты', slug: 'investitsionnye-instrumenty', description: 'Обзор инструментов', videoUrl: 'https://youtube.com/watch?v=ghi', videoProvider: 'YOUTUBE', videoDuration: 1800, moduleId: course1Modules[2].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 2 } }),
+      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Инвестиционные инструменты', slug: 'investitsionnye-instrumenty', description: 'Обзор инструментов', videoUrl: 'https://youtube.com/watch?v=ghi', videoProvider: VideoProvider.YOUTUBE, videoDuration: 1800, moduleId: course1Modules[2].id, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), sortOrder: 2 } }),
     ])
 
     console.log(`✅ Created ${lessons.length} lessons`)
@@ -232,8 +238,8 @@ async function main() {
     ])
 
     const videos = await Promise.all([
-      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Как купить квартиру в ипотеку', slug: 'kak-kupit-kvartiru-v-ipoteku', description: 'Видео-урок по оформлению ипотеки', videoUrl: 'https://youtube.com/watch?v=mortgage1', videoProvider: 'YOUTUBE', videoDuration: 2400, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), viewsCount: 890, likesCount: 123 } }),
-      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Обзор налоговых вычетов 2024', slug: 'obzor-nalogovykh-vychetov-2024', description: 'Что изменилось в этом году', videoUrl: 'https://youtube.com/watch?v=taxes2024', videoProvider: 'YOUTUBE', videoDuration: 1200, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), viewsCount: 567, likesCount: 89 } }),
+      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Как купить квартиру в ипотеку', slug: 'kak-kupit-kvartiru-v-ipoteku', description: 'Видео-урок по оформлению ипотеки', videoUrl: 'https://youtube.com/watch?v=mortgage1', videoProvider: VideoProvider.YOUTUBE, videoDuration: 2400, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), viewsCount: 890, likesCount: 123 } }),
+      prisma.content.create({ data: { type: ContentType.VIDEO, title: 'Обзор налоговых вычетов 2024', slug: 'obzor-nalogovykh-vychetov-2024', description: 'Что изменилось в этом году', videoUrl: 'https://youtube.com/watch?v=taxes2024', videoProvider: VideoProvider.YOUTUBE, videoDuration: 1200, authorProfileId: user.profile!.id, status: ContentStatus.PUBLISHED, publishedAt: new Date(), viewsCount: 567, likesCount: 89 } }),
     ])
 
     const calculators = await Promise.all([
@@ -432,7 +438,7 @@ async function main() {
         contentId: course2.id,
         authorProfileId: user.profile!.id,
         text: 'Отличный курс! Очень помог разобраться в инвестициях.',
-        status: 'APPROVED'
+        status: ModerationStatus.APPROVED
       }
     })
 

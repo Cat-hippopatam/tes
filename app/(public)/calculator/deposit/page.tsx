@@ -8,7 +8,7 @@ import ResultsTable from './components/ResultsTable';
 import DepositChart from './components/Chart';
 import { DepositCalculator } from './deposit.service';
 import { DepositInput, DepositResult } from './types';
-import { AuthModal } from '@/components/UI/modals';
+import { useModalStore } from '@/store/useModalStore';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -16,7 +16,7 @@ export default function DepositCalculatorPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<DepositResult | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { openModal } = useModalStore();
 
   const handleCalculate = (input: DepositInput) => {
     setIsLoading(true);
@@ -37,7 +37,7 @@ export default function DepositCalculatorPage() {
 
   const handleSave = () => {
     if (!session) {
-      setIsAuthModalOpen(true);
+      openModal('auth', { mode: 'login' });
       return;
     }
     // TODO: Сохранить расчет в избранное или историю
@@ -113,12 +113,7 @@ export default function DepositCalculatorPage() {
         </div>
       </div>
 
-      {/* Модалка авторизации */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialMode="login"
-      />
+      {/* Модалка авторизации теперь глобальная через ModalProvider */}
     </div>
   );
 }

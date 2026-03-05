@@ -14,9 +14,15 @@ const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL is missing!");
+}
+
 // 1. Создаем соединение через драйвер 'pg'
 const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL
+  connectionString
 });
 
 // 2. Оборачиваем его в адаптер Prisma
@@ -26,7 +32,7 @@ const adapter = new PrismaPg(pool);
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    adapter,
+    adapter
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

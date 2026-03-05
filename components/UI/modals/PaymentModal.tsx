@@ -8,15 +8,17 @@ import CustomModal from "./modal";
 interface IProps {
   isOpen: boolean;
   onClose: () => void;
-  amount: number;
+  amount?: number; // делаем необязательным, чтобы можно было открывать через openModal без суммы, по умолчанию 790
   description?: string;
   onSuccess?: () => void;
+  productId?: string;
+  priceId?: string;
 }
 
 export default function PaymentModal({
   isOpen,
   onClose,
-  amount,
+  amount = 790,
   description = "Оплата подписки",
   onSuccess,
 }: IProps) {

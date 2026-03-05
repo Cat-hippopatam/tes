@@ -4,3 +4,4 @@ export { default as SubscribeModal } from './SubscribeModal';
 export { default as FavoriteModal } from './FavoriteModal';
 export { default as PaymentModal } from './PaymentModal';
 export { default as CustomModal } from './modal';
+// Все модалки используют единый CustomModal, не используем components/common/modal.tsx
