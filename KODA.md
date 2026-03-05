@@ -147,6 +147,22 @@ npm run start
 npm run lint
 ```
 
+### Очистка порта 3000 (Windows)
+
+Если порт занят и нужно перезапустить dev-сервер:
+
+```powershell
+# Найти процесс на порту 3000
+Get-NetTCPConnection -LocalPort 3000
+
+# Остановить конкретный процесс (замените ID на реальный)
+Stop-Process -Id <PROCESS_ID> -Force
+
+# Или более мягкий способ - проверить занят ли порт перед запуском
+$conn = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue
+if ($conn) { Stop-Process -Id $conn.OwningProcess -Force }
+```
+
 ### Работа с Prisma
 
 ```bash
@@ -357,9 +373,15 @@ export async function getData() {
 - [ ] `/admin` — панель администратора
 
 ### Этап 6. Модалки и UX
-- [ ] Унификация модальных окон (Portal, focus trap, body-scroll-lock)
-- [ ] Добавить недостающие модалки
-- [ ] Исправить баги с модалками
+- [x] Унификация модальных окон (Portal, focus trap, body-scroll-lock)
+- [x] Добавить недостающие модалки
+- [x] Исправить баги с модалками
+
+**Выполнено:**
+- Создан `ModalTrigger` — глобальный обработчик кликов для открытия модалок через data-атрибуты
+- Реализован механизм: `<button data-open-modal="subscribe">`, `<button data-open-modal="payment" data-product-id="123">`
+- ModalProvider корректно подключён в layout
+- Поддерживаемые модалки: auth, subscribe, payment, confirm, favorite
 
 ### Этап 7. Soft delete и роли
 - [ ] Фильтрация deletedAt=null во всех запросах

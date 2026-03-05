@@ -10,6 +10,7 @@ import { auth } from "@/auth/auth";
 import AppLoader from "@/hoc/app-loader";
 import TitleHeader from "@/components/UI/layout/title-header";
 import ModalProvider from "@/components/providers/ModalProvider"; // Импортируем ModalProvider
+import ModalTrigger from "@/components/common/modal-trigger"; // Обработчик кликов для модалок
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,7 @@ export default async function RootLayout({
         {/* ModalProvider должен быть здесь, после основного контента, 
             чтобы модалки рендерились поверх всего */}
         <ModalProvider />
+        <ModalTrigger />
       </body>
     </html>
   );
