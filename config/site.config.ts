@@ -69,4 +69,44 @@ export const siteConfig = {
     }
 } as const;
 
-export type SiteConfig = typeof siteConfig;
+// export type SiteConfig = typeof siteConfig;
+
+// const statusConfig = {
+//   active: {
+//     icon: CheckCircle,
+//     color: "text-green-600 bg-green-50",
+//     text: "Активна"
+//   },
+//   trialing: {
+//     icon: Clock,
+//     color: "text-blue-600 bg-blue-50",
+//     text: "Пробный период"
+//   },
+//   past_due: {
+//     icon: AlertCircle,
+//     color: "text-red-600 bg-red-50",
+//     text: "Просрочена"
+//   },
+//   canceled: {
+//     icon: XCircle,
+//     color: "text-gray-600 bg-gray-50",
+//     text: "Отменена"
+//   },
+//   incomplete: {
+//     icon: AlertTriangle,
+//     color: "text-yellow-600 bg-yellow-50",
+//     text: "Требуется оплата"
+//   },
+//   incomplete_expired: {
+//     icon: XCircle,
+//     color: "text-red-600 bg-red-50",
+//     text: "Платеж не прошел"
+//   },
+//   unpaid: {
+//     icon: AlertCircle,
+//     color: "text-red-600 bg-red-50",
+//     text: "Не оплачено"
+//   }
+// } as const;
+
+// export type statusConfig = typeof statusConfig;
