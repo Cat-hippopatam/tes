@@ -355,10 +355,17 @@ export async function getData() {
 - Исправлен формат params для Next.js 16 (Promise)
 
 ### Этап 3. Платный доступ и фиктивная оплата
-- [ ] API: POST /api/payment/subscribe (фиктивная транзакция)
-- [ ] API: POST /api/payment/buy (покупка контента)
-- [ ] Гейтинг контента: проверка premium-доступа
-- [ ] Визуальные бейджи premium
+- [x] API: POST /api/payment/subscribe (фиктивная транзакция)
+- [x] API: POST /api/payment/buy (покупка контента)
+- [x] Гейтинг контента: проверка premium-доступа
+- [x] Визуальные бейджи premium
+
+**Выполнено:**
+- Создан API /api/payment/subscribe с фиктивной транзакцией и подпиской
+- Создан API /api/payment/buy для покупки контента
+- Premium бейдж на странице курса
+- Premium Gate на странице урока с кнопками подписки/покупки
+- Кнопки с data-open-modal для открытия модалок оплаты
 
 ### Этап 4. ЛК: прогресс/история/избранное/реакции
 - [ ] `/profile/history` — история просмотров

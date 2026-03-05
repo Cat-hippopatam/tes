@@ -186,6 +186,27 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   <span className="text-sm text-[#264653]">{course.author.displayName}</span>
                 </div>
               )}
+              
+              {/* Кнопки для Premium контента */}
+              {course.isPremium && (
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <button 
+                    data-open-modal="subscribe"
+                    className="px-4 py-2 rounded-lg text-white font-medium transition-colors hover:opacity-90"
+                    style={{ backgroundColor: '#F4A261' }}
+                  >
+                    Оформить подписку
+                  </button>
+                  <button 
+                    data-open-modal="payment"
+                    data-product-id={course.id}
+                    className="px-4 py-2 rounded-lg border-2 font-medium transition-colors hover:bg-gray-50"
+                    style={{ borderColor: '#F4A261', color: '#F4A261' }}
+                  >
+                    Купить курс
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
