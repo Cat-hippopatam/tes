@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { withRoleCheck } from '@/lib/role-check';
 
-// GET /api/moderation - получить контент на модерацию
+// GET /api/moderation - получить контент на модерацию (только MODERATOR, ADMIN)
 export async function GET(request: NextRequest) {
+  // Проверка роли
+  const roleCheck = await withRoleCheck(request, { roles: ['MODERATOR', 'ADMIN'] });
+  if (roleCheck) return roleCheck;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'PENDING_REVIEW';
@@ -11,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const [contents, total] = await Promise.all([
       prisma.content.findMany({
-        where: { status },
+        where: { status, deletedAt: null }, // Soft delete filter
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'asc' },
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.content.count({ where: { status } }),
+      prisma.content.count({ where: { status, deletedAt: null } }),
     ]);
 
     return NextResponse.json({
@@ -55,8 +60,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/moderation - принять/отклонить контент
+// POST /api/moderation - принять/отклонить контент (только MODERATOR, ADMIN)
 export async function POST(request: NextRequest) {
+  // Проверка роли
+  const roleCheck = await withRoleCheck(request, { roles: ['MODERATOR', 'ADMIN'] });
+  if (roleCheck) return roleCheck;
+
   try {
     const body = await request.json();
     const { contentId, action, reason } = body; // action: 'approve' | 'reject'

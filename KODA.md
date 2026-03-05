@@ -407,9 +407,15 @@ export async function getData() {
 - Поддерживаемые модалки: auth, subscribe, payment, confirm, favorite
 
 ### Этап 7. Soft delete и роли
-- [ ] Фильтрация deletedAt=null во всех запросах
-- [ ] Ролевая защита роутов (AUTHOR, MODERATOR, ADMIN)
-- [ ] Middleware для проверки ролей
+- [x] Фильтрация deletedAt=null во всех запросах
+- [x] Ролевая защита роутов (AUTHOR, MODERATOR, ADMIN)
+- [x] Middleware для проверки ролей
+
+**Выполнено:**
+- Soft delete фильтр (deletedAt: null) добавлен в /api/content
+- Создан хелпер withRoleCheck и checkUserRole в lib/role-check.ts
+- Защита API /api/moderation (только MODERATOR, ADMIN)
+- Защита API /api/admin/users (только ADMIN)
 
 ---
 

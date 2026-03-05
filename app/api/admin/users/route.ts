@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { withRoleCheck } from '@/lib/role-check';
 
-// GET /api/admin/users - получить всех пользователей
+// GET /api/admin/users - получить всех пользователей (только ADMIN)
 export async function GET(request: NextRequest) {
+  // Проверка роли ADMIN
+  const roleCheck = await withRoleCheck(request, { roles: ['ADMIN'] });
+  if (roleCheck) return roleCheck;
+
   try {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
@@ -50,8 +55,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH /api/admin/users - обновить пользователя (роль, статус)
+// PATCH /api/admin/users - обновить пользователя (роль, статус) (только ADMIN)
 export async function PATCH(request: NextRequest) {
+  // Проверка роли ADMIN
+  const roleCheck = await withRoleCheck(request, { roles: ['ADMIN'] });
+  if (roleCheck) return roleCheck;
+
   try {
     const body = await request.json();
     const { userId, role, isActive } = body;
