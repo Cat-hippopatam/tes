@@ -5,7 +5,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#264653] text-white">
+    <footer className="bg-[#e1e6e8] text-white">
       {/* Основная часть футера */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -17,7 +17,7 @@ export default function Footer() {
               </div>
               <h3 className="text-xl font-bold">Экономикус</h3>
             </div>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-white text-sm mb-4">
               Образовательная платформа для повышения финансовой грамотности. 
               Учим управлять деньгами эффективно и достигать финансовых целей.
             </p>
@@ -60,27 +60,27 @@ export default function Footer() {
             <h3 className="text-lg font-bold mb-4">Курсы</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/courses/finance-basics" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/courses/finance-basics" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Основы финансов
                 </Link>
               </li>
               <li>
-                <Link href="/courses/investing-basics" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/courses/investing-basics" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Инвестиции для начинающих
                 </Link>
               </li>
               <li>
-                <Link href="/courses/pension-planning" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/courses/pension-planning" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Пенсионное планирование
                 </Link>
               </li>
               <li>
-                <Link href="/courses/tax-literacy" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/courses/tax-literacy" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Налоговая грамотность
                 </Link>
               </li>
               <li>
-                <Link href="/courses/financial-freedom" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/courses/financial-freedom" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Финансовая независимость
                 </Link>
               </li>
@@ -92,22 +92,22 @@ export default function Footer() {
             <h3 className="text-lg font-bold mb-4">Калькуляторы</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/calculator/mortgage" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/calculator/mortgage" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Ипотечный калькулятор
                 </Link>
               </li>
               <li>
-                <Link href="/calculator/credit" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/calculator/credit" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Кредитный калькулятор
                 </Link>
               </li>
               <li>
-                <Link href="/calculator/deposit" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/calculator/deposit" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Депозитный калькулятор
                 </Link>
               </li>
               <li>
-                <Link href="/calculator/investment" className="text-gray-300 hover:text-[#F4A261] transition-colors text-sm">
+                <Link href="/calculator/investment" className="text-white hover:text-[#F4A261] transition-colors text-sm">
                   Инвестиционный калькулятор
                 </Link>
               </li>
@@ -122,20 +122,20 @@ export default function Footer() {
                 <svg className="w-5 h-5 text-[#F4A261] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span className="text-gray-300 text-sm">support@ekonomikus.ru</span>
+                <span className="text-white text-sm">support@ekonomikus.ru</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="w-5 h-5 text-[#F4A261] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span className="text-gray-300 text-sm">8 (800) 123-45-67</span>
+                <span className="text-white text-sm">8 (800) 123-45-67</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="w-5 h-5 text-[#F4A261] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-gray-300 text-sm">г. Москва, ул. Финансовая, д. 1</span>
+                <span className="text-white text-sm">г. Москва, ул. Финансовая, д. 1</span>
               </li>
             </ul>
           </div>
@@ -146,17 +146,17 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">
+            <p className="text-white text-sm mb-4 md:mb-0">
               © {currentYear} Экономикус. Все права защищены.
             </p>
             <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-              <Link href="/privacy" className="text-gray-400 hover:text-[#F4A261] text-sm transition-colors">
+              <Link href="/privacy" className="text-white hover:text-[#F4A261] text-sm transition-colors">
                 Политика конфиденциальности
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-[#F4A261] text-sm transition-colors">
+              <Link href="/terms" className="text-white hover:text-[#F4A261] text-sm transition-colors">
                 Условия использования
               </Link>
-              <Link href="/offer" className="text-gray-400 hover:text-[#F4A261] text-sm transition-colors">
+              <Link href="/offer" className="text-white hover:text-[#F4A261] text-sm transition-colors">
                 Договор оферты
               </Link>
             </div>

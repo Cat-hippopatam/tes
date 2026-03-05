@@ -1,0 +1,195 @@
+Project Structure: fin
+==================================================
+
+├── 📁 actions/
+│   ├── 🔷 register.tsx
+│   ├── 🔷 sing-in.ts
+│   └── 🔷 sing-out.ts
+├── 📁 app/
+│   ├── 📁 (protected)/
+│   │   └── 📁 course/
+│   │       └── 🔷 page.tsx
+│   ├── 📁 (public)/
+│   │   ├── 📁 article/
+│   │   │   ├── 🔷 layout.tsx
+│   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 calculator/
+│   │   │   ├── 📁 credit/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 CreditChart.tsx
+│   │   │   │   │   ├── 🔷 CreditForm.tsx
+│   │   │   │   │   └── 🔷 PaymentSchedule.tsx
+│   │   │   │   ├── 🔷 credit.service.ts
+│   │   │   │   ├── 🔷 page.tsx
+│   │   │   │   └── 🔷 types.ts
+│   │   │   ├── 📁 deposit/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 Chart.tsx
+│   │   │   │   │   ├── 🔷 DepositForm.tsx
+│   │   │   │   │   └── 🔷 ResultsTable.tsx
+│   │   │   │   ├── 🔷 deposit.service.ts
+│   │   │   │   ├── 🔷 page.tsx
+│   │   │   │   └── 🔷 types.ts
+│   │   │   ├── 📁 mortgage/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 MortgageChart.tsx
+│   │   │   │   │   ├── 🔷 MortgageForm.tsx
+│   │   │   │   │   └── 🔷 PaymentSchedule.tsx
+│   │   │   │   ├── 🔷 mortgage.service.ts
+│   │   │   │   ├── 🔷 page.tsx
+│   │   │   │   └── 🔷 types.ts
+│   │   │   └── 🔷 layout.tsx
+│   │   ├── 📁 catalog/
+│   │   │   ├── 🔷 layout.tsx
+│   │   │   └── 🔷 page.tsx
+│   │   ├── 📁 profile/
+│   │   │   ├── 📁 courses/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 Certificates.tsx
+│   │   │   │   │   ├── 🔷 ContinueLearning.tsx
+│   │   │   │   │   ├── 🔷 CourseList.tsx
+│   │   │   │   │   └── 🔷 CourseStats.tsx
+│   │   │   │   ├── 📁 data/
+│   │   │   │   │   ├── 📄 courses-service.ts.bat
+│   │   │   │   │   └── 🔷 mock.ts
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 favorites/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 CollectionsList.tsx
+│   │   │   │   │   └── 🔷 FavoritesGrid.tsx
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 settings/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 AvatarUpload.tsx
+│   │   │   │   │   ├── 🔷 ProfileForm.tsx
+│   │   │   │   │   └── 🔷 SocialLinks.tsx
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 📁 subscription/
+│   │   │   │   ├── 📁 components/
+│   │   │   │   │   ├── 🔷 CancelSubscription.tsx
+│   │   │   │   │   ├── 🔷 PaymentHistory.tsx
+│   │   │   │   │   └── 🔷 SubscriptionStatus.tsx
+│   │   │   │   └── 🔷 page.tsx
+│   │   │   ├── 🔷 layout.tsx
+│   │   │   └── 🔷 page.tsx
+│   │   └── 📁 tools/
+│   │       └── 🔷 page.tsx
+│   ├── 📁 api/
+│   │   ├── 📁 auth/
+│   │   │   └── 📁 [...nextauth]/
+│   │   │       └── ⚛️ route.js
+│   │   └── 📁 user/
+│   │       └── 📁 profile/
+│   │           └── 🔷 route.ts
+│   ├── 📁 error/
+│   │   └── 🔷 page.tsx
+│   ├── 📄 favicon.ico
+│   ├── 🎨 globals.css
+│   ├── 🔷 hero.ts
+│   ├── 🔷 layout.tsx
+│   ├── 🔷 not-found.tsx
+│   └── 🔷 page.tsx
+├── 📁 auth/
+│   └── 🔷 auth.ts
+├── 📁 components/
+│   ├── 📁 common/
+│   │   ├── 📁 Button/
+│   │   │   ├── 🔷 Button.tsx
+│   │   │   └── 🔷 index.ts
+│   │   ├── 📁 Input/
+│   │   │   ├── 🔷 index.ts
+│   │   │   └── 🔷 Input.tsx
+│   │   ├── 📁 Slider/
+│   │   │   ├── 🔷 index.ts
+│   │   │   └── 🔷 Slider.tsx
+│   │   ├── 🔷 index.ts
+│   │   ├── 🔷 modal.tsx
+│   │   └── 🔷 page-content.tsx
+│   ├── 📁 home/
+│   │   ├── 🔷 ArticleCard.tsx
+│   │   ├── 🔷 CalculatorCard.tsx
+│   │   ├── 🔷 CourseCard.tsx
+│   │   ├── 🔷 Features.tsx
+│   │   ├── 🔷 Hero.tsx
+│   │   ├── 🔷 HeroImage.tsx
+│   │   └── 🔷 Testimonials.tsx
+│   └── 📁 UI/
+│       ├── 📁 layout/
+│       │   ├── 🔷 footer.tsx
+│       │   ├── 🔷 header.tsx
+│       │   └── 🔷 title-header.tsx
+│       └── 📁 modals/
+│           ├── 🔷 AuthModal.tsx
+│           ├── 🔷 ConfirmModal.tsx
+│           ├── 🔷 FavoriteModal.tsx
+│           ├── 🔷 index.ts
+│           ├── 🔷 modal.tsx
+│           ├── 🔷 PaymentModal.tsx
+│           └── 🔷 SubscribeModal.tsx
+├── 📁 config/
+│   └── 🔷 site.config.ts
+├── 📁 constans/
+│   └── 🔷 select-options.ts
+├── 📁 forms/
+│   └── 📁 auth/
+│       ├── 🔷 login.form.tsx
+│       └── 🔷 registration.form.tsx
+├── 📁 hoc/
+│   ├── 🔷 app-loader.tsx
+│   └── 🔷 useProfile.ts
+├── 📁 prisma/
+│   ├── 📁 migrations/
+│   │   ├── 📁 20260305053001_start/
+│   │   │   └── 📄 migration.sql
+│   │   └── 📄 migration_lock.toml
+│   ├── 📄 schema.prisma
+│   └── 🔷 seed.ts
+├── 📁 providers/
+│   └── 🔷 provider.tsx
+├── 📁 public/
+│   ├── 📁 images/
+│   │   └── 🖼️ placeholder.svg
+│   ├── 📝 about.txt
+│   ├── 🖼️ android-chrome-192x192.png
+│   ├── 🖼️ apple-touch-icon.png
+│   ├── 🖼️ favicon-16x16.png
+│   ├── 🖼️ favicon-32x32.png
+│   ├── 🖼️ logo.png
+│   ├── 🖼️ logo.svg
+│   └── 📄 site.webmanifest
+├── 📁 schema/
+│   └── 🔷 zod.ts
+├── 📁 store/
+│   └── 🔷 auth.store.ts
+├── 📁 types/
+│   ├── 🔷 article.ts
+│   ├── 🔷 courses.ts
+│   ├── 🔷 favorites.ts
+│   ├── 🔷 form-data.ts
+│   ├── 🔷 home.ts
+│   ├── 🔷 index.ts
+│   ├── 🔷 profile.ts
+│   └── 🔷 subscription.ts
+├── 📁 utils/
+│   ├── 📁 lib/
+│   │   ├── 📁 mock/
+│   │   │   └── 🔷 home.ts
+│   │   ├── 📁 services/
+│   │   │   ├── 🔷 data-service.ts
+│   │   │   └── 🔷 home-service.ts
+│   │   ├── 🔷 prisma.ts
+│   │   └── 🔷 user.ts
+│   └── 🔷 password.ts
+├── 📄 .env
+├── 🔒 .gitignore
+├── ⚛️ eslint.config.mjs
+├── 🔷 next-env.d.ts
+├── 🔷 next.config.ts
+├── 📋 package-lock.json
+├── 📋 package.json
+├── ⚛️ postcss.config.mjs
+├── 🔷 prisma.config.ts
+├── 🔷 proxy.ts
+├── 📝 README.md
+├── 🔷 tree-structure.ts
+└── 📋 tsconfig.json

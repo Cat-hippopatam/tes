@@ -20,7 +20,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen">
       {/* Hero секция */}
-      <Hero />
+      {/* <Hero /> */}
 
       {/* Популярные курсы */}
       <section className="py-20 bg-white">
@@ -46,7 +46,7 @@ export default async function HomePage() {
               className="inline-flex items-center text-[#F4A261] hover:text-[#e08e4a] font-medium transition-colors"
             >
               Смотреть все курсы
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </a>
@@ -101,7 +101,7 @@ export default async function HomePage() {
               className="inline-flex items-center text-[#F4A261] hover:text-[#e08e4a] font-medium transition-colors"
             >
               Читать все статьи
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </a>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import CustomModal from "./modal";
+import CustomModal from "@/components/UI/modals/modal";
 import LoginForm from "@/forms/auth/login.form";
 import RegisterForm from "@/forms/auth/registration.form";
 

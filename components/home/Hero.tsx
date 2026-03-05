@@ -40,22 +40,6 @@ export const Hero = () => {
               </Button>
             </Link>
           </div>
-
-          {/* Статистика */}
-          <div className="flex items-center justify-center gap-12">
-            <div>
-              <div className="text-3xl font-bold text-[#F4A261]">15k+</div>
-              <div className="text-sm text-[#6C757D]">студентов</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-[#2A9D8F]">50+</div>
-              <div className="text-sm text-[#6C757D]">курсов</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-[#264653]">4.8</div>
-              <div className="text-sm text-[#6C757D]">рейтинг</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>

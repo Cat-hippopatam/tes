@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/auth/auth";
 import AppLoader from "@/hoc/app-loader";
 import TitleHeader from "@/components/UI/layout/title-header";
+import ModalProvider from "@/components/providers/ModalProvider"; // Импортируем ModalProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,44 +38,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-//   return (
-//     <html lang="ru" className="light">
-//       <body
-//         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
-//       >
-//         <Providers>
-//           <SessionProvider session ={session}>
-//             <AppLoader>
-
-//               {/* Хедер фиксированный сверху */}
-//               <div className="flex min-h-screen flex-col justify-between">
-//                 <div className="flex flex-col">
-
-//                   <Header />
-                
-                
-//                   {/* Основной контент с отступами от хедера */}
-//                   <main className="flex-grow pt-20">
-//                     <TitleHeader />
-//                     {children}
-//                   </main>
-//                 </div>
-                  
-//                 {/* Футер внизу */}
-//                 <Footer />
-//               </div>
-//             </AppLoader>
-//           </SessionProvider>
-//         </Providers>
-//       </body>
-//     </html>
-//   );
-// }
 
   return (
     <html lang="ru" className="light" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider session={session}>
           <Providers>
@@ -91,6 +59,10 @@ export default async function RootLayout({
             </AppLoader>
           </Providers>
         </SessionProvider>
+        
+        {/* ModalProvider должен быть здесь, после основного контента, 
+            чтобы модалки рендерились поверх всего */}
+        <ModalProvider />
       </body>
     </html>
   );

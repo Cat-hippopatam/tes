@@ -4,12 +4,19 @@ export const siteConfig = {
     description: "Образовательная платформа финансов и инвестиций. Учитесь инвестировать безопасно и с умом.",
     
     // Навигация
-    navItems: [
-        { href: "/", label: "Главная" },
-        { href: "/catalog", label: "Каталог" },
-        { href: "/article", label: "Статьи" },
-        { href: "/course", label: "Курсы" },
-        { href: "/tools", label: "Инструменты" }
+    // navItems: [
+    //     { href: "/", label: "Главная" },
+    //     { href: "/catalog", label: "Каталог" },
+    //     { href: "/article", label: "Статьи" },
+    //     { href: "/course", label: "Курсы" },
+    //     { href: "/tools", label: "Инструменты" }
+    // ],
+
+    navigation: [
+      { name: 'Калькуляторы', href: '/calculator' },
+      { name: 'Статьи', href: '/article' },
+      { name: 'Вопросы и ответы', href: '/faq' },
+      { name: 'Курсы', href: '/catalog' },
     ],
 
     pagesContent: {
@@ -55,18 +62,18 @@ export const siteConfig = {
         }
     },
 
-    // Настройки навигации
-    navigation: {
-        sticky: true,
-        mobileBreakpoint: "sm",
-        menuItems: [
-            { href: "/catalog", label: "Каталог", requiresAuth: false },
-            { href: "/article", label: "Статьи", requiresAuth: false },
-            { href: "/course", label: "Курсы", requiresAuth: false },
-            { href: "/tools", label: "Инструменты", requiresAuth: false },
-            { href: "/dashboard", label: "Личный кабинет", requiresAuth: true }
-        ]
-    }
+    // // Настройки навигации
+    // navigation: {
+    //     sticky: true,
+    //     mobileBreakpoint: "sm",
+    //     menuItems: [
+    //         { href: "/catalog", label: "Каталог", requiresAuth: false },
+    //         { href: "/article", label: "Статьи", requiresAuth: false },
+    //         { href: "/course", label: "Курсы", requiresAuth: false },
+    //         { href: "/tools", label: "Инструменты", requiresAuth: false },
+    //         { href: "/dashboard", label: "Личный кабинет", requiresAuth: true }
+    //     ]
+    // }
 } as const;
 
 // export type SiteConfig = typeof siteConfig;

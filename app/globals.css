@@ -160,3 +160,45 @@ body {
 .animate-slide-up {
   animation: slideUp 0.3s ease-out;
 }
+
+/* Принудительно ограничиваем размер всех SVG в карточках */
+.course-card svg,
+.calculator-card svg,
+.article-card svg,
+.features-card svg,
+.testimonial-card svg {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Для иконок в кнопках */
+button svg,
+a svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Глобальное ограничение для всех SVG, которые могли растянуться */
+svg {
+  max-width: 24px;
+  max-height: 24px;
+  width: auto;
+  height: auto;
+}
+
+/* Для контейнеров с SVG */
+button svg,
+a svg,
+[class*="card"] svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Специально для иконки после "Рассчитать" */
+/* button:has(span:contains("Рассчитать")) svg,
+a:has(span:contains("Рассчитать")) svg {
+  width: 16px !important;
+  height: 16px !important;
+} */
