@@ -24,11 +24,14 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          profile: true,
-          _count: {
-            select: {
-              contents: true,
-              comments: true,
+          profile: {
+            include: {
+              _count: {
+                select: {
+                  content: true,
+                  comments: true,
+                },
+              },
             },
           },
         },

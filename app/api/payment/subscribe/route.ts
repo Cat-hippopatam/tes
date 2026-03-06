@@ -1,40 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { auth } from '@/auth/auth';
+import { TransactionStatus, SubscriptionStatus } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
     const body = await request.json();
-    const { userId, planType, amount } = body;
+    const { planType, amount } = body;
+
+    // Получаем профиль пользователя
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session?.user?.id },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль пользователя не найден' },
+        { status: 400 }
+      );
+    }
 
     // Фиктивная транзакция — всегда успешна
     const transaction = await prisma.transaction.create({
       data: {
-        userId: userId || 'demo-user-id', // Для демо используем заглушку
+        profileId: profile.id,
         amount: amount || 9900, // 99₽ по умолчанию
         currency: 'RUB',
-        status: 'COMPLETED',
-        type: 'SUBSCRIPTION',
-        description: `Подписка ${planType || 'premium'} - Economikus`,
-        paymentMethod: 'fake_card',
+        status: TransactionStatus.COMPLETED,
+        type: 'subscription',
+        provider: 'fake_provider',
+        completedAt: new Date(),
       },
     });
 
     // Создаём или обновляем подписку
-    const subscription = await prisma.subscription.upsert({
-      where: { userId: userId || 'demo-user-id' },
-      update: {
-        status: 'ACTIVE',
-        planType: planType || 'premium',
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 дней
-      },
-      create: {
-        userId: userId || 'demo-user-id',
-        status: 'ACTIVE',
-        planType: planType || 'premium',
-        currentPeriodStart: new Date(),
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      },
+    const existingSubscriptions = await prisma.subscription.findMany({
+      where: { profileId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      take: 1,
     });
+    const existingSubscription = existingSubscriptions[0];
+
+    let subscription;
+    if (existingSubscription) {
+      subscription = await prisma.subscription.update({
+        where: { id: existingSubscription.id },
+        data: {
+          status: SubscriptionStatus.ACTIVE,
+          planType: planType || 'premium',
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      });
+    } else {
+      subscription = await prisma.subscription.create({
+        data: {
+          profileId: profile.id,
+          status: SubscriptionStatus.ACTIVE,
+          planType: planType || 'premium',
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          price: amount || 9900,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

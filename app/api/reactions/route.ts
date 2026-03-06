@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { ReactionType } from '@prisma/client';
+import { auth } from '@/auth/auth';
 
 // GET /api/reactions - получить реакции контента
 export async function GET(request: NextRequest) {
@@ -15,11 +17,11 @@ export async function GET(request: NextRequest) {
     }
 
     const likes = await prisma.contentReaction.count({
-      where: { contentId, isLike: true },
+      where: { contentId, type: ReactionType.LIKE },
     });
 
     const dislikes = await prisma.contentReaction.count({
-      where: { contentId, isLike: false },
+      where: { contentId, type: ReactionType.DISLIKE },
     });
 
     return NextResponse.json({
@@ -38,8 +40,9 @@ export async function GET(request: NextRequest) {
 // POST /api/reactions - поставить реакцию
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
     const body = await request.json();
-    const { userId = 'demo-user-id', contentId, isLike } = body;
+    const { contentId, isLike } = body;
 
     if (!contentId) {
       return NextResponse.json(
@@ -48,17 +51,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Получаем профиль пользователя
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session?.user?.id },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль не найден' },
+        { status: 400 }
+      );
+    }
+
+    const reactionType = isLike ? ReactionType.LIKE : ReactionType.DISLIKE;
+
     // Проверяем, есть ли уже реакция
     const existing = await prisma.contentReaction.findUnique({
       where: {
-        userId_contentId: { userId, contentId },
+        profileId_contentId: { profileId: profile.id, contentId },
       },
     });
 
     let reaction;
 
     if (existing) {
-      if (existing.isLike === isLike) {
+      if (existing.type === reactionType) {
         // Удаляем реакцию если кликнули то же самое (toggle)
         await prisma.contentReaction.delete({
           where: { id: existing.id },
@@ -68,22 +85,22 @@ export async function POST(request: NextRequest) {
         // Меняем реакцию
         reaction = await prisma.contentReaction.update({
           where: { id: existing.id },
-          data: { isLike },
+          data: { type: reactionType },
         });
       }
     } else {
       // Создаём новую реакцию
       reaction = await prisma.contentReaction.create({
-        data: { userId, contentId, isLike },
+        data: { profileId: profile.id, contentId, type: reactionType },
       });
     }
 
     // Получаем обновлённые счётчики
     const likes = await prisma.contentReaction.count({
-      where: { contentId, isLike: true },
+      where: { contentId, type: ReactionType.LIKE },
     });
     const dislikes = await prisma.contentReaction.count({
-      where: { contentId, isLike: false },
+      where: { contentId, type: ReactionType.DISLIKE },
     });
 
     return NextResponse.json({

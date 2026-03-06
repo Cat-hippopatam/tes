@@ -1,5 +1,11 @@
 // app/(public)/profile/courses/data/mock.ts
-import { UserCourse, Certificate, ContinueLearningItem, CourseStat } from "@/types/courses"
+import type { Certificate as PrismaCertificate } from "@prisma/client"
+import { UserCourse, ContinueLearningItem, CourseStat } from "@/types/courses"
+
+// Моковый тип сертификата с дополнительными полями для UI
+export interface MockCertificate extends PrismaCertificate {
+  courseName?: string
+}
 
 export const mockUserCourses: UserCourse[] = [
   {
@@ -73,7 +79,8 @@ export const mockContinueLearning: ContinueLearningItem[] = [
     imageUrl: '/images/courses/finance-basics.jpg',
     lastLesson: 'Урок 6: Инвестиционные инструменты',
     progress: 75,
-    timeRemaining: '2 часа'
+    timeRemaining: '2 часа',
+    updatedAt: new Date()
   },
   {
     courseId: 'course_2',
@@ -81,17 +88,25 @@ export const mockContinueLearning: ContinueLearningItem[] = [
     imageUrl: '/images/courses/investing.jpg',
     lastLesson: 'Урок 3: Акции и облигации',
     progress: 30,
-    timeRemaining: '5 часов'
+    timeRemaining: '5 часов',
+    updatedAt: new Date()
   }
 ]
 
-export const mockCertificates: Certificate[] = [
+export const mockCertificates: MockCertificate[] = [
   {
     id: 'cert_1',
     courseName: 'Налоговая грамотность',
     issuedAt: new Date(2024, 1, 28),
     imageUrl: '/images/certificates/taxes.jpg',
-    pdfUrl: '/certificates/taxes.pdf'
+    pdfUrl: '/certificates/taxes.pdf',
+    createdAt: new Date(2024, 1, 28),
+    updatedAt: new Date(2024, 1, 28),
+    contentId: 'content_1',
+    profileId: 'profile_1',
+    completedAt: new Date(2024, 1, 28),
+    certificateNumber: 'EC-2024-0001',
+    metadata: {}
   }
 ]
 
@@ -100,5 +115,7 @@ export const mockCourseStats: CourseStat = {
   completedCourses: 1,
   inProgressCourses: 2,
   totalCertificates: 1,
+  totalLessons: 45,
+  completedLessons: 12,
   totalHoursSpent: 18
 }

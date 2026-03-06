@@ -15,7 +15,7 @@ async function fetchContent(slug: string) {
   return res.json() as Promise<{ data: any }>;
 }
 
-function PremiumGate({ isPremium, children }: { isPremium: boolean; children: React.ReactNode }) {
+function PremiumGate({ isPremium, children }: { isPremium: boolean; children?: React.ReactNode }) {
   // Клиентский триггер через глобальный стор
   if (!isPremium) return <>{children}</>;
   return (
@@ -87,7 +87,7 @@ export default async function ContentDetailPage({ params }: { params: Promise<{ 
           )}
 
           {/* Premium Gate */}
-          <PremiumGate isPremium={data.isPremium}>
+          <PremiumGate isPremium={Boolean(data.isPremium)}>
             {/* Здесь можно разместить кнопку добавить в избранное, реакции и т.д. */}
           </PremiumGate>
         </div>

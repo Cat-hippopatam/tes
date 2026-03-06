@@ -1,6 +1,6 @@
 import { auth } from "@/auth/auth";
 import { prisma } from "@/utils/lib/prisma";
-import { UserCourse, Certificate, ContinueLearningItem, CourseStat } from "@/types/courses";
+import { UserCourse, ContinueLearningItem, CourseStat, MockCertificate } from "@/types/courses";
 import { ContentType } from "@prisma/client";
 
 /**
@@ -70,6 +70,8 @@ export async function getCourseStats(): Promise<CourseStat> {
     completedCourses,
     inProgressCourses,
     totalCertificates,
+    totalLessons: 0, // TODO: рассчитать реальное значение
+    completedLessons: 0, // TODO: рассчитать реальное значение
     totalHoursSpent
   };
 }
@@ -103,7 +105,7 @@ export async function getUserCourses(): Promise<UserCourse[]> {
     include: {
       content: {
         include: {
-          module: { // Исправлено: с 'modules' на 'module'
+          courseModules: {
             include: {
               lessons: {
                 where: {
@@ -122,13 +124,14 @@ export async function getUserCourses(): Promise<UserCourse[]> {
 
   // Преобразуем данные в формат UserCourse
   return progresses.map(progress => {
-    const course = progress.content;
+    const course = progress.content as any;
     
-    // Исправлено: считаем длину массива lessons вместо lessonsCount
-    const totalLessons = course.module.reduce(
-      (sum: number, moduleItem: any) => sum + (moduleItem.lessons?.length || 0), 
-      0
-    );
+    // Считаем общее количество уроков через courseModules
+    const courseModules = course.courseModules || [];
+    let totalLessons = 0;
+    for (const mod of courseModules) {
+      totalLessons += mod.lessons?.length || 0;
+    }
     
     const completedLessons = progress.completedLessons;
 
@@ -205,14 +208,15 @@ export async function getContinueLearning(): Promise<ContinueLearningItem[]> {
     imageUrl: progress.content.coverImage || undefined,
     lastLesson: "Продолжить обучение",
     progress: progress.progressPercent,
-    timeRemaining: `${Math.max(1, 10 - Math.floor(progress.progressPercent / 10))} ч`
+    timeRemaining: `${Math.max(1, 10 - Math.floor(progress.progressPercent / 10))} ч`,
+    updatedAt: progress.lastViewedAt || new Date()
   }));
 }
 
 /**
  * Получение сертификатов пользователя
  */
-export async function getUserCertificates(): Promise<Certificate[]> {
+export async function getUserCertificates(): Promise<MockCertificate[]> {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Пользователь не авторизован");

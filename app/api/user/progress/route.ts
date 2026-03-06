@@ -1,14 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { auth } from '@/auth/auth';
+import { Prisma } from '@prisma/client';
 
 // GET /api/user/progress - получить прогресс пользователя
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'demo-user-id';
-    const contentId = searchParams.get('contentId'); // опционально - прогресс по конкретному контенту
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Требуется авторизация' },
+        { status: 401 }
+      );
+    }
 
-    const where: any = { userId };
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль не найден' },
+        { status: 404 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const contentId = searchParams.get('contentId');
+
+    const where: Prisma.ProgressWhereInput = { profileId: profile.id };
     if (contentId) where.contentId = contentId;
 
     const progress = await prisma.progress.findMany({
@@ -50,9 +70,27 @@ export async function GET(request: NextRequest) {
 // POST /api/user/progress - обновить прогресс
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Требуется авторизация' },
+        { status: 401 }
+      );
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль не найден' },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json();
     const { 
-      userId = 'demo-user-id', 
       contentId, 
       status = 'IN_PROGRESS',
       completedLessons = 0,
@@ -68,16 +106,16 @@ export async function POST(request: NextRequest) {
 
     const progress = await prisma.progress.upsert({
       where: {
-        userId_contentId: { userId, contentId },
+        profileId_contentId: { profileId: profile.id, contentId },
       },
       update: {
         status,
         completedLessons,
         totalLessons,
-        lastAccessedAt: new Date(),
+        lastViewedAt: new Date(),
       },
       create: {
-        userId,
+        profileId: profile.id,
         contentId,
         status,
         completedLessons,
@@ -91,13 +129,14 @@ export async function POST(request: NextRequest) {
       if (content?.type === 'COURSE') {
         await prisma.certificate.upsert({
           where: {
-            userId_contentId: { userId, contentId },
+            profileId_contentId: { profileId: profile.id, contentId },
           },
           update: { issuedAt: new Date() },
           create: {
-            userId,
+            profileId: profile.id,
             contentId,
-            issuedAt: new Date(),
+            completedAt: new Date(),
+            certificateNumber: `EC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           },
         });
       }

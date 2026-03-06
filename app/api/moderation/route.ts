@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
 import { withRoleCheck } from '@/lib/role-check';
+import { ContentStatus, ModerationItemType, ModerationStatus } from '@prisma/client';
+import { auth } from '@/auth/auth';
 
 // GET /api/moderation - получить контент на модерацию (только MODERATOR, ADMIN)
 export async function GET(request: NextRequest) {
@@ -10,7 +12,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'PENDING_REVIEW';
+    const statusParam = searchParams.get('status') || 'PENDING_REVIEW';
+    const status = statusParam as ContentStatus;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -24,9 +27,14 @@ export async function GET(request: NextRequest) {
           author: {
             select: {
               id: true,
-              email: true,
-              profile: {
-                select: { displayName: true, avatarUrl: true },
+              displayName: true,
+              avatarUrl: true,
+              user: {
+                select: {
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
               },
             },
           },
@@ -67,6 +75,7 @@ export async function POST(request: NextRequest) {
   if (roleCheck) return roleCheck;
 
   try {
+    const session = await auth();
     const body = await request.json();
     const { contentId, action, reason } = body; // action: 'approve' | 'reject'
 
@@ -84,15 +93,30 @@ export async function POST(request: NextRequest) {
       data: { status: newStatus },
     });
 
-    // Создаём запись модерации
-    await prisma.moderationItem.create({
-      data: {
-        contentId,
-        status: action === 'approve' ? 'APPROVED' : 'REJECTED',
-        reason: reason || null,
-        reviewedAt: new Date(),
-      },
+    // Получаем профиль модератора
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session?.user?.id },
     });
+
+    // Создаём запись модерации
+    if (profile) {
+      // Получаем автора контента для submittedByProfileId
+      const content = await prisma.content.findUnique({
+        where: { id: contentId },
+        select: { authorProfileId: true },
+      });
+
+      await prisma.moderationItem.create({
+        data: {
+          itemType: ModerationItemType.CONTENT,
+          itemId: contentId,
+          status: action === 'approve' ? ModerationStatus.APPROVED : ModerationStatus.REJECTED,
+          moderationComment: reason || null,
+          submittedByProfileId: content?.authorProfileId || profile.id,
+          moderatedByProfileId: profile.id,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, data: content });
   } catch (error) {

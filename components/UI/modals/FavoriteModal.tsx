@@ -9,6 +9,7 @@ import CustomModal from "./modal";
 interface IProps {
   isOpen: boolean;
   onClose: () => void;
+  contentId?: string;
   contentTitle?: string;
   onSave?: (data: { collection: string; note: string }) => void;
 }
@@ -16,6 +17,7 @@ interface IProps {
 export default function FavoriteModal({
   isOpen,
   onClose,
+  contentId,
   contentTitle = "Материал",
   onSave,
 }: IProps) {

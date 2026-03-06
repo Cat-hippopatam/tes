@@ -3,10 +3,10 @@
 
 import { Card, CardBody, CardHeader } from "@heroui/react"
 import { Award, Download, ExternalLink } from "lucide-react"
-import { Certificate } from "@/types/courses"
+import { MockCertificate } from "../data/mock"
 
 interface CertificatesProps {
-  certificates: Certificate[]
+  certificates: MockCertificate[]
 }
 
 export function Certificates({ certificates }: CertificatesProps) {

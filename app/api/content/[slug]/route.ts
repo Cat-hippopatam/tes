@@ -39,6 +39,7 @@ export async function GET(
 
     const data = {
       ...item,
+      isPremium: item.isPremium,
       tags: item.tags.map((tc) => tc.tag),
     };
 

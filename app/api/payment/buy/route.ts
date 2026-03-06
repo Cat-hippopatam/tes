@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/utils/lib/prisma';
+import { auth } from '@/auth/auth';
+import { TransactionStatus } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
     const body = await request.json();
-    const { userId, contentId, amount } = body;
+    const { contentId, amount } = body;
 
     // Проверяем, что контент существует
     const content = await prisma.content.findUnique({
@@ -18,17 +21,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Получаем профиль пользователя
+    const profile = await prisma.profile.findUnique({
+      where: { userId: session?.user?.id },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Профиль пользователя не найден' },
+        { status: 400 }
+      );
+    }
+
     // Фиктивная транзакция — всегда успешна
     const transaction = await prisma.transaction.create({
       data: {
-        userId: userId || 'demo-user-id',
-        amount: amount || content.price || 4900,
+        profileId: profile.id,
+        amount: amount || 4900,
         currency: 'RUB',
-        status: 'COMPLETED',
-        type: 'PURCHASE',
-        description: `Покупка контента: ${content.title}`,
-        paymentMethod: 'fake_card',
+        status: TransactionStatus.COMPLETED,
+        type: 'one_time_purchase',
         contentId: contentId,
+        provider: 'fake_provider',
+        completedAt: new Date(),
       },
     });
 
