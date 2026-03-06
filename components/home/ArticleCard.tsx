@@ -37,9 +37,13 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/images/placeholder.svg';
+              }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-[#264653] to-[#1a3a45] text-white">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2A9D8F] to-[#264653]">
               <span className="text-4xl">📄</span>
             </div>
           )}

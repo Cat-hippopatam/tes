@@ -50,6 +50,96 @@ export default function CreditPage() {
     link.click();
   };
 
+  const handleExportPDF = () => {
+    if (!result) return;
+    
+    const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Кредитный калькулятор - Economikus</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; color: #264653; }
+    h1 { color: #264653; border-bottom: 2px solid #F4A261; padding-bottom: 10px; }
+    .summary { display: flex; gap: 20px; margin: 20px 0; }
+    .summary-item { background: #F8F6F3; padding: 15px; border-radius: 8px; flex: 1; }
+    .summary-item strong { display: block; font-size: 24px; color: #F4A261; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #E8E4DE; padding: 10px; text-align: center; }
+    th { background: #457B9D; color: white; }
+    tr:nth-child(even) { background: #F8F6F3; }
+    .footer { margin-top: 30px; text-align: center; color: #6C757D; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>💰 Кредитный калькулятор</h1>
+  <p>Дата расчёта: ${new Date().toLocaleDateString('ru-RU')}</p>
+  
+  <div class="summary">
+    <div class="summary-item">
+      <span>Ежемесячный платёж</span>
+      <strong>${formatCurrency(result.monthlyPayment)}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Переплата</span>
+      <strong>${formatCurrency(result.totalInterest)}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Эффективная ставка</span>
+      <strong>${result.effectiveRate}%</strong>
+    </div>
+  </div>
+  
+  <h2>График платежей</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Месяц</th>
+        <th>Дата</th>
+        <th>Платёж</th>
+        <th>Основной долг</th>
+        <th>Проценты</th>
+        <th>Остаток</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${result.schedule.map(p => `
+        <tr>
+          <td>${p.month}</td>
+          <td>${new Date(new Date().setMonth(new Date().getMonth() + p.month)).toLocaleDateString('ru-RU')}</td>
+          <td>${formatCurrency(p.payment)}</td>
+          <td>${formatCurrency(p.principal)}</td>
+          <td>${formatCurrency(p.interest)}</td>
+          <td>${formatCurrency(p.remainingDebt)}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  
+  <div class="footer">
+    <p>Рассчитано на сайте Economikus - economikus.ru</p>
+  </div>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handleSaveImage = () => {
+    // Создаём canvas с графиком
+    const chartContainer = document.querySelector('.credit-chart-container');
+    if (!chartContainer) return;
+    
+    // Просто提示 пользователю использовать скриншот
+    alert('Для сохранения графика используйте функцию скриншота (PrintScreen) или расширение браузера');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Шапка */}
@@ -64,13 +154,20 @@ export default function CreditPage() {
                 Рассчитайте ежемесячные платежи и переплату по кредиту
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={handleExportPDF}
+                disabled={!result}
+              >
+                📄 PDF
+              </Button>
               <Button
                 variant="outline"
                 onClick={handleExportCSV}
                 disabled={!result}
               >
-                📥 Скачать CSV
+                📥 CSV
               </Button>
             </div>
           </div>

@@ -44,6 +44,98 @@ export default function DepositCalculatorPage() {
     console.log('Сохранение расчета');
   };
 
+  const handleExportPDF = () => {
+    if (!result) return;
+    
+    const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Калькулятор вкладов - Economikus</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; color: #264653; }
+    h1 { color: #264653; border-bottom: 2px solid #2A9D8F; padding-bottom: 10px; }
+    .summary { display: flex; gap: 20px; margin: 20px 0; }
+    .summary-item { background: #F8F6F3; padding: 15px; border-radius: 8px; flex: 1; }
+    .summary-item strong { display: block; font-size: 24px; color: #2A9D8F; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #E8E4DE; padding: 10px; text-align: center; }
+    th { background: #2A9D8F; color: white; }
+    tr:nth-child(even) { background: #F8F6F3; }
+    .footer { margin-top: 30px; text-align: center; color: #6C757D; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>🏦 Калькулятор вкладов</h1>
+  <p>Дата расчёта: ${new Date().toLocaleDateString('ru-RU')}</p>
+  
+  <div class="summary">
+    <div class="summary-item">
+      <span>Сумма в конце срока</span>
+      <strong>${new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(result.finalAmount)}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Начисленные проценты</span>
+      <strong>${new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(result.totalInterest)}</strong>
+    </div>
+  </div>
+  
+  <h2>График начисления процентов</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Период</th>
+        <th>Начислено</th>
+        <th>Итого</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${result.months.map((p, i) => `
+        <tr>
+          <td>${i + 1} мес</td>
+          <td>${new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(p.interest)}</td>
+          <td>${new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(p.endBalance)}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  
+  <div class="footer">
+    <p>Рассчитано на сайте Economikus - economikus.ru</p>
+  </div>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (!result) return;
+    
+    const headers = ['Период', 'Начислено', 'Итого'];
+    const rows = result.months.map((p, i) => [
+      `${i + 1} мес`,
+      p.interest,
+      p.endBalance
+    ]);
+    
+    const csv = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `deposit-schedule-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
   if (status === 'loading') {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -87,7 +179,21 @@ export default function DepositCalculatorPage() {
               </div>
             ) : result ? (
               <>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2 flex-wrap">
+                  <Button
+                    onPress={handleExportPDF}
+                    size="sm"
+                    variant="bordered"
+                  >
+                    📄 PDF
+                  </Button>
+                  <Button
+                    onPress={handleExportCSV}
+                    size="sm"
+                    variant="bordered"
+                  >
+                    📥 CSV
+                  </Button>
                   <Button
                     onPress={handleSave}
                     size="sm"
@@ -96,7 +202,7 @@ export default function DepositCalculatorPage() {
                       color: 'white',
                     }}
                   >
-                    Сохранить расчет
+                    💾 Сохранить
                   </Button>
                 </div>
                 <ResultsTable result={result} />

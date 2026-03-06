@@ -1,0 +1,16 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F8F6F3"/>
+  <rect x="0" y="0" width="1200" height="200" fill="#457B9D"/>
+  <circle cx="150" cy="100" r="60" fill="#F4A261"/>
+  <text x="150" y="120" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="60" font-weight="bold">E</text>
+  <text x="600" y="130" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold">Экономикус</text>
+  <text x="600" y="180" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-family="Arial, sans-serif" font-size="24">Образовательная платформа по финансам</text>
+  <rect x="100" y="250" width="1000" height="300" rx="20" fill="white" stroke="#E8E4DE" stroke-width="2"/>
+  <text x="600" y="350" text-anchor="middle" fill="#264653" font-family="Arial, sans-serif" font-size="36" font-weight="bold">📚 Курсы</text>
+  <text x="600" y="400" text-anchor="middle" fill="#6C757D" font-family="Arial, sans-serif" font-size="20">Финансовая грамотность</text>
+  <text x="600" y="450" text-anchor="middle" fill="#6C757D" font-family="Arial, sans-serif" font-size="20">Инвестиции</text>
+  <text x="600" y="500" text-anchor="middle" fill="#6C757D" font-family="Arial, sans-serif" font-size="20">Управление бюджетом</text>
+  <circle cx="250" cy="450" r="30" fill="#2A9D8F"/>
+  <circle cx="600" cy="450" r="30" fill="#F4A261"/>
+  <circle cx="950" cy="450" r="30" fill="#457B9D"/>
+</svg>

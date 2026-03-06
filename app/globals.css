@@ -1,46 +1,63 @@
-/* Сначала все @import */
+/* Шрифты из макетов */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 /* Tailwind v4 imports */
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
 
-/* CSS переменные */
+/* CSS переменные из макета - мягкие пастельные тона */
 :root {
-  --background: #F8F6F3;
-  --foreground: #264653;
-  --primary: #F4A261;
+  /* Основные цвета */
+  --background: #F8F6F3;      /* Тёплый песочный */
+  --foreground: #2C3E50;      /* Мягкий тёмный */
+  
+  /* Карточки и поповеры */
+  --card: #FFFFFF;
+  --card-foreground: #2C3E50;
+  --popover: #FFFFFF;
+  --popover-foreground: #2C3E50;
+  
+  /* Основные цвета из макета */
+  --primary: #457B9D;         /* Синий из макета */
   --primary-foreground: #FFFFFF;
-  --secondary: #2A9D8F;
+  --secondary: #7FB069;       /* Зелёный из макета */
   --secondary-foreground: #FFFFFF;
-  --muted: #6C757D;
-  --muted-foreground: #FFFFFF;
-  --accent: #F4A261;
-  --accent-foreground: #264653;
-  --destructive: #FF6B6B;
+  
+  /* Акцентный */
+  --accent: #FFD166;          /* Песок/жёлтый */
+  --accent-foreground: #2C3E50;
+  
+  /* Муted цвета */
+  --muted: #F0EDE8;           /* Очень светлый песок */
+  --muted-foreground: #5A6A7A;
+  
+  /* Уничтожение */
+  --destructive: #E57373;     /* Мягкий красный */
   --destructive-foreground: #FFFFFF;
-  --border: #E9ECEF;
-  --input: #E9ECEF;
-  --ring: #F4A261;
-  --radius: 0.5rem;
+  
+  /* Границы */
+  --border: #E8E4DE;
+  --input: #E8E4DE;
+  --ring: #457B9D;
+  
+  /* Радиус */
+  --radius: 0.75rem;
+  
+  /* Кастомная палитра Economikus */
+  --color-blue: #457B9D;
+  --color-sand: #FFD166;
+  --color-green: #7FB069;
+  --color-bg-warm: #F8F6F3;
+  --color-bg-warmer: #FBF9F6;
+  --color-bg-green: #F4F7F5;
+  --color-text-dark: #2C3E50;
+  --color-text-mid: #5A6A7A;
 }
 
+/* Убираем тёмную тему - только светлая с мягкими цветами */
 .dark {
   --background: #1a1a1a;
   --foreground: #F8F9FA;
-  --primary: #F4A261;
-  --primary-foreground: #264653;
-  --secondary: #2A9D8F;
-  --secondary-foreground: #F8F9FA;
-  --muted: #6C757D;
-  --muted-foreground: #F8F9FA;
-  --accent: #F4A261;
-  --accent-foreground: #F8F9FA;
-  --destructive: #FF6B6B;
-  --destructive-foreground: #F8F9FA;
-  --border: #2d2d2d;
-  --input: #2d2d2d;
-  --ring: #F4A261;
 }
 
 /* Базовые стили */
@@ -48,10 +65,159 @@
   border-color: var(--border);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 18px;
+  line-height: 1.65;
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Шрифты */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+.font-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-ui {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Тени из макета */
+.card-shadow {
+  box-shadow: 0 4px 16px rgba(69, 123, 157, 0.08), 0 1px 4px rgba(69, 123, 157, 0.04);
+}
+
+.card-shadow-hover {
+  box-shadow: 0 8px 32px rgba(69, 123, 157, 0.14), 0 2px 8px rgba(69, 123, 157, 0.08);
+}
+
+/* Фоновые классы из макета */
+.bg-warm {
+  background-color: #F8F6F3;
+}
+
+.bg-warmer {
+  background-color: #FBF9F6;
+}
+
+.bg-green-light {
+  background-color: #F4F7F5;
+}
+
+/* Цветовые классы */
+.text-blue {
+  color: #457B9D;
+}
+
+.text-sand {
+  color: #FFD166;
+}
+
+.text-green {
+  color: #7FB069;
+}
+
+.text-dark {
+  color: #2C3E50;
+}
+
+.text-mid {
+  color: #5A6A7A;
+}
+
+.bg-blue {
+  background-color: #457B9D;
+}
+
+.bg-sand {
+  background-color: #FFD166;
+}
+
+.bg-green {
+  background-color: #7FB069;
+}
+
+.border-blue {
+  border-color: #457B9D;
+}
+
+.border-sand {
+  border-color: #FFD166;
+}
+
+/* Анимации из макета */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.7s ease-out forwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.opacity-0-init {
+  opacity: 0;
 }
 
 /* Кастомные классы */

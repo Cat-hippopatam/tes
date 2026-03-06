@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin areas
+Disallow: /admin
+Disallow: /author
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://economikus.ru/sitemap.xml
+
+# Crawl-delay (optional, for polite crawling)
+Crawl-delay: 1
