@@ -456,3 +456,154 @@ export async function getData() {
 Репозитории:
 - **Функциональный репозиторий** (основной): https://github.com/Cat-hippopatam/tes — сюда делаем коммиты
 - **Репозиторий дизайна**: https://github.com/Cat-hippopatam/fin — макеты и стили
+
+---
+
+## Функциональные модули
+
+### 1. Модуль аутентификации (`auth/`, `forms/auth/`)
+**Назначение**: Регистрация и вход пользователей
+**Компоненты**:
+- `forms/auth/login.form.tsx` — форма входа
+- `forms/auth/registration.form.tsx` — форма регистрации
+- `auth/auth.ts` — конфигурация NextAuth
+
+**Валидация**: Базовая (email regex, пароль мин. 6 символов, подтверждение пароля)
+
+**Зависимости**: NextAuth, HeroUI
+
+---
+
+### 2. Модуль контента (`app/api/content/`, `app/(public)/content/[slug]/`)
+**Назначение**: Управление контентом (курсы, статьи, видео)
+**API endpoints**:
+- `GET /api/content` — список контента с пагинацией
+- `GET /api/content/[slug]` — детальная страница контента
+- `POST /api/content` — создание контента (авторы)
+
+**Особенности**:
+- Soft delete через `deletedAt`
+- Теги через связь TagContent
+- isPremium для платного контента
+
+---
+
+### 3. Модуль курсов (`app/(protected)/course/[slug]/`)
+**Назначение**: Страницы курсов и уроков
+**Компоненты**:
+- `app/(protected)/course/[slug]/page.tsx` — страница курса
+- `app/(protected)/course/[slug]/module/[moduleId]/page.tsx` — страница модуля
+- `app/(protected)/lesson/[slug]/page.tsx` — страница урока
+
+**Особенности**:
+- Поддержка видео и статей
+- Premium Gate для платного контента
+- Прогресс обучения
+
+---
+
+### 4. Модуль калькуляторов (`app/(public)/calculator/`)
+**Назначение**: Финансовые калькуляторы
+**Калькуляторы**:
+- `credit/` — кредитный калькулятор (аннуитетный/дифференцированный, досрочное погашение)
+- `deposit/` — калькулятор вкладов (капитализация, пополнения, частичное снятие)
+- `mortgage/` — ипотечный калькулятор
+
+**Экспорт**: PDF и CSV (только deposit)
+
+**Валидация**: min/max значения через Input и Slider
+
+---
+
+### 5. Модуль оплаты (`app/api/payment/`)
+**Назначение**: Подписки и покупки
+**API endpoints**:
+- `POST /api/payment/subscribe` — оформление подписки
+- `POST /api/payment/buy` — разовая покупка
+
+**Особенности**: Фиктивная оплата для тестирования
+
+---
+
+### 6. Модуль модерации (`app/api/moderation/`, `app/(protected)/admin/moderation/`)
+**Назначение**: Модерация контента
+**API endpoints**:
+- `GET /api/moderation` — получить контент на модерацию
+- `POST /api/moderation` — approve/reject контента
+
+**Роли**: MODERATOR, ADMIN
+
+---
+
+### 7. Модуль администрирования (`app/api/admin/`, `app/(protected)/admin/`)
+**Назначение**: Управление пользователями
+**API endpoints**:
+- `GET /api/admin/users` — список пользователей
+- `PATCH /api/admin/users` — изменить роль/статус пользователя
+
+**Роли**: ADMIN
+
+---
+
+### 8. Модуль реакций (`app/api/reactions/`, `components/common/reactions.tsx`)
+**Назначение**: Лайки/дизлайки контента и комментариев
+**API endpoints**:
+- `GET /api/reactions` — получить реакции
+- `POST /api/reactions` — поставить реакцию
+
+---
+
+### 9. Модуль профиля (`app/(public)/profile/settings/`)
+**Назначение**: Настройки профиля пользователя
+**Компоненты**:
+- `ProfileForm.tsx` — форма редактирования профиля
+
+**Валидация**:
+- Обязательные поля (имя, фамилия, никнейм, отображаемое имя)
+- Никнейм: мин. 3 символа, только латинские буквы/цифры/_
+
+---
+
+### 10. Модуль избранного и истории (`app/api/user/favorites/`, `app/api/user/history/`)
+**Назначение**: История просмотров и избранное
+**API endpoints**:
+- `GET/POST /api/user/favorites` — избранное
+- `GET/POST /api/user/history` — история просмотров
+
+---
+
+### 11. Модуль сертификатов
+**Назначение**: Выдача сертификатов при завершении курса
+**Автоматическая генерация**: При достижении 100% прогресса
+
+---
+
+## Валидация форм
+
+### Уровень 1: Базовый (HTML5 атрибуты)
+- Калькуляторы: `min`, `max`, `step` в Input/Slider
+
+### Уровень 2: Клиентский JavaScript
+- `forms/auth/login.form.tsx` — проверка email/password
+- `forms/auth/registration.form.tsx` — валидация email, пароля, подтверждения
+- `app/(public)/profile/settings/components/ProfileForm.tsx` — полная валидация полей
+
+### Уровень 3: Серверный (не реализовано)
+- Zod схемы на сервере
+- Повторная валидация при API вызовах
+
+---
+
+## Состояние админ-панели
+
+### Реализовано:
+- ✅ `/admin` — главная страница со статистикой
+- ✅ `/admin/moderation` — модерация контента (approve/reject)
+- ✅ `/api/admin/users` — GET/PATCH пользователей
+- ✅ `/api/moderation` — approve/reject контента
+
+### Требует реализации:
+- ❌ `/admin/users` — страница управления пользователями
+- ❌ `/admin/content` — страница управления контентом
+- ❌ `/admin/analytics` — аналитика
+- ❌ `/admin/settings` — настройки системы
