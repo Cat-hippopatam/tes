@@ -13,10 +13,11 @@ export const siteConfig = {
     // ],
 
     navigation: [
+      { name: 'Главная', href: '/' },
+      { name: 'Каталог', href: '/catalog' },
       { name: 'Калькуляторы', href: '/calculator' },
       { name: 'Статьи', href: '/article' },
       { name: 'Вопросы и ответы', href: '/faq' },
-      { name: 'Курсы', href: '/catalog' },
     ],
 
     pagesContent: {

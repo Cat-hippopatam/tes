@@ -134,18 +134,17 @@ export default async function RootLayout({
             <AppLoader>
               <div className="flex flex-col min-h-screen">
                 <Header />
-                <main className="flex-grow pt-20">
+                <main className="flex-grow pt-16">
                   <TitleHeader />
                   {children}
                 </main>
                 <Footer />
               </div>
+              <ModalProvider />
+              <ModalTrigger />
             </AppLoader>
           </Providers>
         </SessionProvider>
-        
-        <ModalProvider />
-        <ModalTrigger />
       </body>
     </html>
   );
