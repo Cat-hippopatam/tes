@@ -7,10 +7,11 @@ interface CourseCardProps {
   course: {
     id: string;
     title: string;
-    description?: string;
+    description?: string | null;
     coverImage?: string | null;
-    difficultyLevel?: string;
+    difficultyLevel?: string | null;
     isPremium?: boolean;
+    slug?: string;
   };
   variant?: 'default' | 'compact';
 }
@@ -23,9 +24,10 @@ const difficultyLabels: Record<string, string> = {
 
 export const CourseCard = ({ course, variant = 'default' }: CourseCardProps) => {
   const levelLabel = course.difficultyLevel ? difficultyLabels[course.difficultyLevel] : 'Начинающий';
+  const href = course.slug ? `/course/${course.slug}` : `/content/${course.id}`;
 
   return (
-    <Link href={`/course/${course.id}`}>
+    <Link href={href}>
       <div className="bg-[#F8F9FA] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
         <div className="relative h-48 bg-gray-200">
           {course.coverImage ? (
