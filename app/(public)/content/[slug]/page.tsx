@@ -87,9 +87,7 @@ export default async function ContentDetailPage({ params }: { params: Promise<{ 
           )}
 
           {/* Premium Gate */}
-          <PremiumGate isPremium={Boolean(data.isPremium)}>
-            {/* Здесь можно разместить кнопку добавить в избранное, реакции и т.д. */}
-          </PremiumGate>
+          <PremiumGate isPremium={Boolean(data.isPremium)} />
         </div>
 
         <aside className="lg:col-span-4 space-y-6">
