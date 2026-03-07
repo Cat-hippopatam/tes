@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Testimonial } from '@/types/home';
 
 interface TestimonialsProps {
-  testimonials: Testimonial[];
+  testimonials: {
+    id: string;
+    name: string;
+    text?: string;
+    role?: string;
+  }[];
 }
 
 export const Testimonials = ({ testimonials }: TestimonialsProps) => {
@@ -43,34 +46,19 @@ export const Testimonials = ({ testimonials }: TestimonialsProps) => {
                   <div className="bg-white rounded-2xl p-8 shadow-lg">
                     <div className="flex items-center gap-2 mb-4">
                       {[...Array(5)].map((_, i) => (
-                        <span 
-                          key={i} 
-                          className={i < testimonial.rating ? 'text-yellow-400' : 'text-gray-300'}
-                        >
-                          ★
-                        </span>
+                        <span key={i} className="text-yellow-400">★</span>
                       ))}
                     </div>
                     <p className="text-lg text-[#264653] mb-6 italic">
-                      &ldquo;{testimonial.content}&rdquo;
+                      &ldquo;{testimonial.text || 'Отличный курс! Всё понятно и доступно.'}&rdquo;
                     </p>
                     <div className="flex items-center gap-4">
-                      <div className="relative w-14 h-14 rounded-full bg-gray-300 overflow-hidden">
-                        {testimonial.avatar && (
-                          <Image
-                            src={testimonial.avatar}
-                            alt={testimonial.name}
-                            fill
-                            className="object-cover"
-                          />
-                        )}
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#F4A261] to-[#2A9D8F] flex items-center justify-center text-white text-xl font-bold">
+                        {testimonial.name.charAt(0)}
                       </div>
                       <div>
                         <h4 className="font-bold text-[#264653]">{testimonial.name}</h4>
-                        <p className="text-sm text-[#6C757D]">{testimonial.role}</p>
-                        {testimonial.courseName && (
-                          <p className="text-xs text-[#F4A261] mt-1">{testimonial.courseName}</p>
-                        )}
+                        <p className="text-sm text-[#6C757D]">{testimonial.role || 'Студент'}</p>
                       </div>
                     </div>
                   </div>

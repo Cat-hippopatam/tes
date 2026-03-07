@@ -1,4 +1,3 @@
-import { homeService } from '@/utils/lib/services/home-service';
 import { Hero } from '@/components/home/Hero';
 import { CourseCard } from '@/components/home/CourseCard';
 import { ArticleCard } from '@/components/home/ArticleCard';
@@ -7,16 +6,44 @@ import { Features } from '@/components/home/Features';
 import { Testimonials } from '@/components/home/Testimonials';
 // Footer импортируется из layout, он уже есть в RootLayout
 
-export default async function HomePage() {
-  // Получаем данные из сервиса
-  const [popularCourses, latestArticles, calculators, features, testimonials] = await Promise.all([
-    homeService.getPopularCourses(6),
-    homeService.getLatestArticles(4),
-    homeService.getCalculators(),
-    homeService.getFeatures(),
-    homeService.getTestimonials(4)
-  ]);
+// Временные данные для главной страницы
+const popularCourses = [
+  { id: '1', title: 'Основы инвестирования', description: 'Научитесь основам работы с инвестициями', difficultyLevel: 'BEGINNER', coverImage: null, isPremium: false },
+  { id: '2', title: 'Управление личными финансами', description: 'Как эффективно управлять своим бюджетом', difficultyLevel: 'BEGINNER', coverImage: null, isPremium: false },
+  { id: '3', title: 'Налоги и страхование', description: 'Всё о налогах и страховых продуктах', difficultyLevel: 'INTERMEDIATE', coverImage: null, isPremium: true },
+  { id: '4', title: 'Криптовалюты для начинающих', description: 'Введение в мир криптовалют', difficultyLevel: 'BEGINNER', coverImage: null, isPremium: true },
+  { id: '5', title: 'Недвижимость как инвестиция', description: 'Как инвестировать в недвижимость', difficultyLevel: 'INTERMEDIATE', coverImage: null, isPremium: true },
+  { id: '6', title: 'Пенсионное планирование', description: 'Как накопить на пенсию', difficultyLevel: 'ADVANCED', coverImage: null, isPremium: true },
+];
 
+const latestArticles = [
+  { id: '1', title: 'Как начать инвестировать с нуля', description: 'Пошаговое руководство для начинающих', publishedAt: new Date().toISOString() },
+  { id: '2', title: 'Что такое сложный процент', description: 'Математика финансового роста', publishedAt: new Date().toISOString() },
+  { id: '3', title: 'Ошибки начинающих инвесторов', description: 'Чего следует избегать', publishedAt: new Date().toISOString() },
+  { id: '4', title: 'Как выбрать брокера', description: 'На что обратить внимание', publishedAt: new Date().toISOString() },
+];
+
+const calculators = [
+  { id: '1', title: 'Кредитный калькулятор', description: 'Рассчитайте платежи по кредиту', slug: 'credit', icon: '💳' },
+  { id: '2', title: 'Калькулятор вкладов', description: 'Рассчитайте доходность вклада', slug: 'deposit', icon: '🏦' },
+  { id: '3', title: 'Ипотечный калькулятор', description: 'Рассчитайте ипотеку', slug: 'mortgage', icon: '🏠' },
+];
+
+const features = [
+  { title: 'Эксперты', description: 'Обучаем у практиков финансового рынка', icon: '👨‍🏫' },
+  { title: 'Практика', description: 'Закрепляем знания на реальных кейсах', icon: '💼' },
+  { title: 'Сертификаты', description: 'Подтверждаем вашу квалификацию', icon: '📜' },
+  { title: 'Сообщество', description: 'Общаемся с единомышленниками', icon: '👥' },
+];
+
+const testimonials = [
+  { id: '1', name: 'Анна К.', text: 'Отличный курс! Всё понятно и доступно.', role: 'Студент' },
+  { id: '2', name: 'Михаил П.', text: 'Получил реальные навыки инвестирования.', role: 'Предприниматель' },
+  { id: '3', name: 'Елена С.', text: 'Рекомендую всем, кто хочет разобраться в финансах.', role: 'Менеджер' },
+  { id: '4', name: 'Иван Д.', text: 'Лучший курс по финансовой грамотности!', role: 'Разработчик' },
+];
+
+export default async function HomePage() {
   return (
     <main className="min-h-screen">
       {/* Hero секция */}
