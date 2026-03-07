@@ -32,9 +32,10 @@ export default function Header() {
 
   return (
     <header 
-      className={`w-full transition-all duration-300 fixed top-0 left-0 right-0 z-50 ${
+      className={`w-full transition-all duration-300 sticky top-0 left-0 right-0 z-50 border-b ${
         isScrolled ? 'bg-white shadow-md py-2' : 'bg-white py-3'
       }`}
+      style={{ borderColor: isScrolled ? '#E8E4DE' : 'transparent' }}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
