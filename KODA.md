@@ -599,11 +599,12 @@ export async function getData() {
 ### Реализовано:
 - ✅ `/admin` — главная страница со статистикой
 - ✅ `/admin/moderation` — модерация контента (approve/reject)
-- ✅ `/api/admin/users` — GET/PATCH пользователей
+- ✅ `/admin/users` — страница управления пользователями (просмотр, редактирование роли, блокировка, удаление)
+- ✅ `/admin/content` — страница управления контентом (просмотр, удаление, фильтры по типу и статусу)
+- ✅ `/api/admin/users` — GET/PATCH/DELETE пользователей
+- ✅ `/api/admin/content` — GET/PATCH/DELETE контента
 - ✅ `/api/moderation` — approve/reject контента
 
 ### Требует реализации:
-- ❌ `/admin/users` — страница управления пользователями
-- ❌ `/admin/content` — страница управления контентом
 - ❌ `/admin/analytics` — аналитика
 - ❌ `/admin/settings` — настройки системы
