@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { siteConfig } from '@/config/site.config';
-import { useModalStore } from '@/store/useModalStore';
 
 interface NavItem {
   name: string;
@@ -16,8 +15,6 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const { openModal } = useModalStore();
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -25,10 +22,6 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const handleOpenAuth = (mode: 'login' | 'register') => {
-    openModal('auth', { mode });
-  };
 
   return (
     <header 
@@ -61,20 +54,20 @@ export default function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <button 
-              onClick={() => handleOpenAuth('login')}
+            <Link 
+              href="/login"
               className="px-4 py-2 text-sm font-medium rounded-lg border-2 border-transparent transition-all hover:border-[#F4A261] hover:text-[#F4A261]"
               style={{ color: '#264653' }}
             >
               Войти
-            </button>
-            <button 
-              onClick={() => handleOpenAuth('register')}
+            </Link>
+            <Link 
+              href="/register"
               className="px-4 py-2 text-sm font-medium rounded-lg transition-all hover:opacity-90"
               style={{ backgroundColor: '#F4A261', color: 'white' }}
             >
               Регистрация
-            </button>
+            </Link>
           </div>
 
           <button 
@@ -109,26 +102,22 @@ export default function Header() {
                 </Link>
               ))}
               <div className="flex gap-2 pt-4">
-                <button 
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleOpenAuth('login');
-                  }}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all"
+                <Link 
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-lg border-2 transition-all text-center"
                   style={{ borderColor: '#F4A261', color: '#F4A261' }}
                 >
                   Войти
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleOpenAuth('register');
-                  }}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all hover:opacity-90"
+                </Link>
+                <Link 
+                  href="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all hover:opacity-90 text-center"
                   style={{ backgroundColor: '#F4A261', color: 'white' }}
                 >
                   Регистрация
-                </button>
+                </Link>
               </div>
             </nav>
           </div>
