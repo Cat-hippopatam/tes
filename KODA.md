@@ -608,3 +608,144 @@ export async function getData() {
 ### Требует реализации:
 - ❌ `/admin/analytics` — аналитика
 - ❌ `/admin/settings` — настройки системы
+
+---
+
+## Переиспользуемые компоненты и шаблоны
+
+### UI-компоненты (components/common/)
+
+| Компонент | Назначение | Параметры |
+|-----------|------------|-----------|
+| `Button` | Универсальная кнопка | `variant`, `size`, `disabled`, `isLoading` |
+| `Input` | Поле ввода | `error`, `type`, `placeholder`, `value` |
+| `Slider` | Слайдер с мин/макс | `min`, `max`, `step`, `value`, `onChange`, `formatLabel` |
+| `Modal` | Обёртка модального окна | HeroUI Modal с кастомными стилями |
+
+### Паттерны проектирования
+
+#### 1. Форма с валидацией (ProfileForm)
+```typescript
+// Шаблон для форм с клиентской валидацией
+interface FormData { ... }
+const validateForm = () => { ... } // Возвращает Record<string, string>
+const handleSubmit = async (e) => {
+  const errors = validateForm();
+  if (Object.keys(errors).length > 0) {
+    setErrors(errors);
+    return;
+  }
+  // Отправка на сервер
+}
+```
+
+#### 2. Таблица с пагинацией (AdminUsers, AdminContent)
+```typescript
+// Шаблон для страниц с таблицами
+const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+const fetchData = async () => {
+  const res = await fetch(`/api/.../?page=${pagination.page}&limit=${pagination.limit}`);
+  const data = await res.json();
+  setItems(data.data);
+  setPagination(prev => ({ ...prev, ...data.pagination }));
+};
+useEffect(() => { fetchData(); }, [pagination.page]);
+```
+
+#### 3. Модальное окно с формами (Admin Edit/Delete)
+```typescript
+// Использует HeroUI useDisclosure
+const { isOpen, onOpen, onClose } = useDisclosure();
+const [selectedItem, setSelectedItem] = useState(null);
+const handleEdit = (item) => { setSelectedItem(item); onOpen(); };
+// ... Modal с формой редактирования
+```
+
+#### 4. Premium Gate (блокировка контента)
+```typescript
+function PremiumGate({ isPremium, children }: { isPremium: boolean; children?: React.ReactNode }) {
+  if (!isPremium) return <>{children}</>;
+  return (
+    <div className="p-6 border-2 border-dashed rounded-xl text-center">
+      <p>Контент доступен по подписке</p>
+      <button data-open-modal="subscribe">Оформить подписку</button>
+    </div>
+  );
+}
+```
+
+#### 5. Калькулятор с экспортом (Deposit)
+```typescript
+// PDF: window.open() с HTML-контентом
+// CSV: Blob + URL.createObjectURL + download link
+const handleExportPDF = () => {
+  const html = `<!DOCTYPE html>...${data}...</html>`;
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.print();
+};
+```
+
+---
+
+## Анализ форм и валидации
+
+### Форма входа (forms/auth/login.form.tsx)
+- **HTML5**: `isRequired`, `type="email"`
+- **Клиентская**: Нет доп.валидации (только required)
+- **Серверная**: Через NextAuth
+
+### Форма регистрации (forms/auth/registration.form.tsx)
+- **HTML5**: `isRequired`, `type="email"`
+- **Клиентская**: 
+  - Email regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+  - Пароль мин. 6 символов
+  - Подтверждение пароля
+- **Серверная**: Через registerUser action
+
+### Настройки профиля (ProfileForm.tsx)
+- **HTML5**: Нет
+- **Клиентская** (полная):
+  - firstName/lastName/nickname/displayName: обязательно
+  - nickname: мин. 3 символа, только `a-zA-Z0-9_`
+  - bio: макс. 500 символов
+- **Серверная**: Проверка уникальности никнейма
+
+### Калькуляторы (CreditForm, DepositForm, MortgageForm)
+- **HTML5**: `min`, `max`, `step` на Input и Slider
+- **Клиентская**: Ограничения диапазонов через Slider
+- **Серверная**: Нет
+
+---
+
+## Анализ админ-панели
+
+### Управление пользователями (/admin/users)
+- ✅ Просмотр списка с пагинацией
+- ✅ Поиск по email/никнейму
+- ✅ Фильтр по роли (USER/AUTHOR/MODERATOR/ADMIN)
+- ✅ Редактирование роли и статуса (активен/заблокирован)
+- ✅ Удаление пользователя
+- ✅ Просмотр статистики контента
+
+### Управление контентом (/admin/content)
+- ✅ Просмотр списка с пагинацией
+- ✅ Поиск по названию
+- ✅ Фильтр по типу (COURSE/ARTICLE/VIDEO/PODCAST)
+- ✅ Фильтр по статусу (DRAFT/PENDING_REVIEW/PUBLISHED/ARCHIVED)
+- ✅ Просмотр деталей контента
+- ✅ Удаление контента
+- ❌ Редактирование контента (не реализовано)
+- ❌ Создание контента (не реализовано)
+
+### Модерация (/admin/moderation)
+- ✅ Просмотр контента на модерацию
+- ✅ Одобрение (approve)
+- ✅ Отклонение (reject)
+- ✅ Комментарий модератора
+
+### Главная страница (/admin)
+- ✅ Статистика по пользователям
+- ✅ Статистика по контенту
+- ✅ Статистика по подпискам
+- ❌ Графики/диаграммы (не реализовано)
