@@ -920,3 +920,171 @@ const { openModal } = useModalStore();
   Удалить
 </button>
 ```
+
+---
+
+## Анализ файла proxy.ts (Middleware)
+
+### Текущее состояние
+
+Файл `proxy.ts` в этом проекте используется как кастомный middleware для защиты маршрутов:
+
+```typescript
+// proxy.ts (текущее состояние)
+import { NextResponse, type NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = await getToken({ req: request });
+  const protectedRoutes = ["/course"]; // это пример взять просто для тестирования
+
+  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+    if (!token) {
+      const url = new URL("/error", request.url);
+      url.searchParams.set("message", "Недостаточно прав");
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+    matcher: ["/course"]
+}
+```
+
+**Примечание**: В этом проекте используется кастомное имя `proxy.ts` вместо стандартного `middleware.ts`.
+
+### Выявленные проблемы
+
+| Проблема | Описание | Влияние |
+|----------|----------|---------|
+| **Неправильный matcher** | `matcher: ["/course"]` не матчит `/course/[slug]` | Защита не работает для детальных страниц курсов |
+| **Неполный список маршрутов** | Только `/course` в списке | Остальные защищённые маршруты не защищены |
+| **Неправильный редирект** | Перенаправляет на `/error` | Должен перенаправлять на страницу входа |
+| **Нет ролевой защиты** | Не проверяет роли (ADMIN, AUTHOR, MODERATOR) | Не разграничивает доступ к admin/author |
+
+### Структура маршрутов проекта
+
+#### Публичные маршруты (не требуют авторизации)
+- `/` — главная страница
+- `/catalog` — каталог контента
+- `/content/[slug]` — детальная страница контента
+- `/article/[slug]` — статьи
+- `/calculator/*` — калькуляторы (credit, deposit, mortgage)
+- `/faq` — вопросы и ответы
+- `/tools` — инструменты
+
+#### Защищённые маршруты (требуют авторизации)
+- `/profile/*` — личный кабинет (сейчас в `(public)`, что неправильно!)
+- `/course/*` — страницы курсов
+- `/lesson/*` — страницы уроков
+
+#### Административные маршруты (требуют конкретные роли)
+- `/admin/*` — только для роли ADMIN
+- `/author/*` — для ролей AUTHOR, MODERATOR, ADMIN
+
+### Рекомендуемая реализация middleware
+
+```typescript
+// middleware.ts (правильная реализация)
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+
+export default withAuth(
+  function middleware(request) {
+    const { pathname } = request.nextUrl;
+    const token = request.nextauth.token;
+    const userRole = token?.role as string;
+
+    // Защита админ-панели (только ADMIN)
+    if (pathname.startsWith("/admin")) {
+      if (userRole !== "ADMIN") {
+        const url = new URL("/profile", request.url);
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Защита панели автора (AUTHOR, MODERATOR, ADMIN)
+    if (pathname.startsWith("/author")) {
+      if (!["AUTHOR", "MODERATOR", "ADMIN"].includes(userRole)) {
+        const url = new URL("/profile", request.url);
+        return NextResponse.redirect(url);
+      }
+    }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      // Авторизованные пользователи проходят дальше
+      authorized: ({ token }) => !!token,
+    },
+  }
+);
+
+// Защищённые маршруты
+export const config = {
+  matcher: [
+    /*
+     * Защищаем:
+     * - /profile/:path* - личный кабинет
+     * - /course/:path* - курсы
+     * - /lesson/:path* - уроки
+     * - /admin/:path* - админ-панель
+     * - /author/:path* - панель автора
+     */
+    "/profile/:path*",
+    "/course/:path*",
+    "/lesson/:path*",
+    "/admin/:path*",
+    "/author/:path*",
+  ],
+};
+```
+
+### Что нужно исправить
+
+1. **Использовать `withAuth`**: Это официальный способ защиты маршрутов в NextAuth (можно оставить имя `proxy.ts`)
+
+2. **Добавить все защищённые маршруты**:
+   - `/profile/*` — личный кабинет
+   - `/course/*` — курсы
+   - `/lesson/*` — уроки
+   - `/admin/*` — админ-панель (дополнительно проверить роль ADMIN)
+   - `/author/*` — панель автора (дополнительно проверить роли AUTHOR, MODERATOR, ADMIN)
+
+3. **Перенаправлять на страницу входа**: Вместо `/error` перенаправлять на `/auth` или показывать модальное окно
+
+4. **Переместить `/profile`**: Из `(public)/profile` в `(protected)/profile`
+
+### Альтернативный вариант (без middleware)
+
+Если не хотите использовать middleware, можно добавить проверку на каждой странице:
+
+```typescript
+// app/(protected)/profile/page.tsx
+import { auth } from "@/auth/auth";
+import { redirect } from "next/navigation";
+
+export default async function ProfilePage() {
+  const session = await auth();
+  
+  if (!session) {
+    redirect("/?auth=login"); // или открыть модалку авторизации
+  }
+  
+  return <div>Личный кабинет</div>;
+}
+```
+
+### Итоговые рекомендации
+
+| Действие | Приоритет | Описание |
+|----------|-----------|----------|
+| Добавить все защищённые маршруты | Высокий | /profile, /course, /lesson, /admin, /author |
+| Добавить ролевую проверку | Средний | ADMIN для /admin, AUTHOR для /author |
+| Переместить /profile в protected | Средний | Сейчас он в public директории |
+| Изменить редирект на /auth | Низкий | Вместо /error показывать форму входа |
