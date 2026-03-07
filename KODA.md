@@ -749,3 +749,174 @@ const handleExportPDF = () => {
 - ✅ Статистика по контенту
 - ✅ Статистика по подпискам
 - ❌ Графики/диаграммы (не реализовано)
+
+---
+
+## Анализ модальных окон
+
+### Обзор системы модальных окон
+
+В проекте реализована централизованная система модальных окон на основе:
+- **Zustand** (`store/useModalStore.ts`) — глобальное состояние для управления модалками
+- **ModalProvider** (`components/providers/ModalProvider.tsx`) — рендерит активную модалку
+- **ModalTrigger** (`components/common/modal-trigger.tsx`) — глобальный обработчик кликов для открытия модалок через data-атрибуты
+
+### Доступные модальные окна
+
+| Модалка | Назначение | Параметры |
+|---------|------------|-----------|
+| `auth` | Вход/регистрация | `mode`: "login" \| "register" |
+| `subscribe` | Оформление подписки | - |
+| `payment` | Оплата | `productId`, `priceId` |
+| `confirm` | Подтверждение действия | `title`, `message`, `confirmText`, `cancelText`, `onConfirm` |
+| `favorite` | Добавление в избранное | `contentId` |
+
+### Два способа открытия модалок
+
+#### 1. Напрямую через Zustand store (Header)
+```tsx
+// components/UI/layout/header.tsx
+const { openModal } = useModalStore();
+
+<button onClick={() => openModal('auth', { mode: 'login' })}>
+  Войти
+</button>
+```
+
+#### 2. Через data-атрибуты (любой элемент)
+```tsx
+// Страница курса
+<button data-open-modal="subscribe">Оформить подписку</button>
+<button data-open-modal="payment" data-product-id="123">Купить</button>
+```
+
+### Выявленные проблемы и решения
+
+#### ❌ Проблема 1: Модальные окна могут не открываться при первой загрузке
+
+**Причина**: 
+- `AppLoader` возвращает `null` во время загрузки (пока `isInitialized = false`)
+- `ModalProvider` использует `if (!isMounted) return null` для предотвращения гидратации
+- При быстром переходе между страницами модальные окна могут не успеть инициализироваться
+
+**Решение**: 
+- Переместить `ModalProvider` и `ModalTrigger` ВЫНЕ `AppLoader`, чтобы они рендерились независимо от состояния загрузки
+- В `layout.tsx` изменить структуру:
+
+```tsx
+// Было:
+<Providers>
+  <AppLoader>
+    <div className="...">...</div>
+    <ModalProvider />
+    <ModalTrigger />
+  </AppLoader>
+</Providers>
+
+// Стало:
+<Providers>
+  <AppLoader>
+    <div className="...">...</div>
+  </AppLoader>
+  <ModalProvider />
+  <ModalTrigger />
+</Providers>
+```
+
+#### ❌ Проблема 2: Модальные окна могут быть скрыты из-за z-index
+
+**Причина**: 
+- Header имеет `z-50`
+- Модальные окна HeroUI должны иметь высокий z-index, но могут конфликтовать с другими элементами
+
+**Решение**:
+- Добавить явный z-index в `CustomModal`:
+
+```tsx
+// components/UI/modals/modal.tsx
+<Modal
+  isOpen={isOpen}
+  onClose={onClose}
+  classNames={{
+    base: "bg-white z-[9999]", // Явный z-index
+    // ...
+  }}
+>
+```
+
+#### ❌ Проблема 3: Zustand store может не работать корректно с SSR
+
+**Причина**: 
+- Zustand создаётся на клиенте, но может использоваться на сервере
+- При SSR состояние может быть не синхронизировано
+
+**Решение**:
+- Использовать `useEffect` для инициализации состояния на клиенте
+- Проверить, что все компоненты, использующие `useModalStore`, являются клиентскими (`'use client'`)
+
+#### ❌ Проблема 4: Кнопки с data-open-modal в Server Components
+
+**Причина**:
+- Страница курса (`app/(protected)/course/[slug]/page.tsx`) — Server Component
+- Кнопки с `data-open-modal` работают через `ModalTrigger` на клиенте
+- Теоретически это должно работать, но могут быть проблемы с инициализацией
+
+**Решение**:
+- Преобразовать страницу курса в Client Component, или
+- Создать отдельный Client Component для кнопок с модалками
+
+### Текущее состояние
+
+| Компонент | Файл | Статус |
+|-----------|------|--------|
+| Zustand Store | `store/useModalStore.ts` | ✅ Работает |
+| ModalProvider | `components/providers/ModalProvider.tsx` | ✅ Работает |
+| ModalTrigger | `components/common/modal-trigger.tsx` | ✅ Работает |
+| AuthModal | `components/UI/modals/AuthModal.tsx` | ✅ Работает |
+| SubscribeModal | `components/UI/modals/SubscribeModal.tsx` | ✅ Работает |
+| PaymentModal | `components/UI/modals/PaymentModal.tsx` | ✅ Работает |
+| ConfirmModal | `components/UI/modals/ConfirmModal.tsx` | ✅ Работает |
+| FavoriteModal | `components/UI/modals/FavoriteModal.tsx` | ✅ Работает |
+| Кнопки в Header | `components/UI/layout/header.tsx` | ✅ Работает |
+| Кнопки в курсах | `app/(protected)/course/[slug]/page.tsx` | ⚠️ Требует проверки |
+
+### Рекомендуемые действия
+
+1. **Переместить ModalProvider и ModalTrigger вне AppLoader** — это решит проблему с инициализацией при загрузке
+2. **Добавить явный z-index в модальные окна** — чтобы они всегда отображались поверх других элементов
+3. **Протестировать на реальном устройстве** — проверить, работают ли модальные окна во всех браузерах
+4. **Добавить логирование** — для отладки проблем с модальными окнами
+
+### Пример использования в коде
+
+```tsx
+// Открытие модального окна подписки
+<button data-open-modal="subscribe">
+  Оформить подписку
+</button>
+
+// Открытие модального окна оплаты с параметрами
+<button 
+  data-open-modal="payment" 
+  data-product-id="course-123"
+  data-price-id="price-456"
+>
+  Купить курс
+</button>
+
+// Открытие модального окна авторизации
+<button onClick={() => openModal('auth', { mode: 'login' })}>
+  Войти
+</button>
+
+// Открытие модального окна подтверждения
+<button onClick={() => openModal('confirm', {
+  title: 'Удалить?',
+  message: 'Вы уверены, что хотите удалить этот элемент?',
+  confirmText: 'Удалить',
+  cancelText: 'Отмена',
+  onConfirm: () => { /* логика удаления */ }
+})}>
+  Удалить
+</button>
+```
