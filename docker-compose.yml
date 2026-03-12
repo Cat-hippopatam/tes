@@ -1,0 +1,69 @@
+# ============================================
+# Docker Compose для Economikus
+# ============================================
+# Запуск: docker-compose up -d
+# Остановка: docker-compose down
+# Логи: docker-compose logs -f
+# ============================================
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: economikus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-economikus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-economikus_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-economikus}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-economikus} -d ${POSTGRES_DB:-economikus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Next.js приложение
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: economikus-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # База данных
+      DATABASE_URL: postgresql://${POSTGRES_USER:-economikus}:${POSTGRES_PASSWORD:-economikus_secret}@postgres:5432/${POSTGRES_DB:-economikus}
+      # NextAuth
+      AUTH_SECRET: ${AUTH_SECRET:-change_this_secret_in_production}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # Приложение
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node server.js
+      "
+
+volumes:
+  postgres_data:
+
+# ============================================
+# Для production используйте .env файл:
+# 
+# POSTGRES_USER=economikus
+# POSTGRES_PASSWORD=your_strong_password
+# POSTGRES_DB=economikus
+# AUTH_SECRET=your_auth_secret_min_32_chars
+# NEXTAUTH_URL=https://your-domain.com
+# NEXT_PUBLIC_BASE_URL=https://your-domain.com
+# ============================================
